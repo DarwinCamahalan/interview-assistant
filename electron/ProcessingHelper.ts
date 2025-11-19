@@ -1057,6 +1057,264 @@ Your solution should be efficient, well-commented, and handle edge cases.
     }
   }
 
+  public async regenerateSolutionWithError(errorFeedback: string): Promise<void> {
+    const mainWindow = this.deps.getMainWindow();
+    if (!mainWindow) return;
+
+    const config = configHelper.loadConfig();
+    
+    // Verify we have a valid AI client
+    if (config.apiProvider === "openai" && !this.openaiClient) {
+      this.initializeAIClient();
+      if (!this.openaiClient) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_ERROR, "OpenAI API key not configured");
+        return;
+      }
+    } else if (config.apiProvider === "gemini" && !this.geminiApiKey) {
+      this.initializeAIClient();
+      if (!this.geminiApiKey) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_ERROR, "Gemini API key not configured");
+        return;
+      }
+    } else if (config.apiProvider === "anthropic" && !this.anthropicClient) {
+      this.initializeAIClient();
+      if (!this.anthropicClient) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_ERROR, "Anthropic API key not configured");
+        return;
+      }
+    }
+
+    mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_START);
+
+    try {
+      const problemInfo = this.deps.getProblemInfo();
+      const language = await this.getLanguage();
+      
+      if (!problemInfo) {
+        throw new Error("No problem info available");
+      }
+
+      const promptText = `
+I previously provided a solution for this coding problem, but it's not working correctly. Please generate a new, corrected solution.
+
+PROBLEM STATEMENT:
+${problemInfo.problem_statement}
+
+CONSTRAINTS:
+${problemInfo.constraints || "No specific constraints provided."}
+
+EXAMPLE INPUT:
+${problemInfo.example_input || "No example input provided."}
+
+EXAMPLE OUTPUT:
+${problemInfo.example_output || "No example output provided."}
+
+LANGUAGE: ${language}
+
+ERROR OR INCORRECT OUTPUT:
+${errorFeedback}
+
+Please provide a corrected solution with:
+1. Code: A complete, working implementation in ${language} that fixes the issues
+2. Your Thoughts: A list explaining what was wrong and how you fixed it
+3. Time complexity: O(X) with a detailed explanation (at least 2 sentences)
+4. Space complexity: O(X) with a detailed explanation (at least 2 sentences)
+
+Make sure the solution is correct and handles all edge cases.
+`;
+
+      let responseContent;
+      
+      if (config.apiProvider === "openai") {
+        const solutionResponse = await this.openaiClient!.chat.completions.create({
+          model: config.solutionModel || "gpt-4o",
+          messages: [
+            { role: "system", content: "You are an expert coding interview assistant. Provide corrected solutions that fix the reported errors." },
+            { role: "user", content: promptText }
+          ],
+          max_tokens: 4000,
+          temperature: 0.2
+        });
+        responseContent = solutionResponse.choices[0].message.content;
+      } else if (config.apiProvider === "gemini") {
+        const geminiMessages = [{
+          role: "user",
+          parts: [{ text: `You are an expert coding interview assistant. Provide a corrected solution:\n\n${promptText}` }]
+        }];
+        const response = await axios.default.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/${config.solutionModel || "gemini-2.0-flash"}:generateContent?key=${this.geminiApiKey}`,
+          {
+            contents: geminiMessages,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 4000 }
+          }
+        );
+        const responseData = response.data as GeminiResponse;
+        responseContent = responseData.candidates[0].content.parts[0].text;
+      } else if (config.apiProvider === "anthropic") {
+        const messages = [{
+          role: "user" as const,
+          content: [{ type: "text" as const, text: `You are an expert coding interview assistant. Provide a corrected solution:\n\n${promptText}` }]
+        }];
+        const response = await this.anthropicClient!.messages.create({
+          model: config.solutionModel || "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
+          messages: messages,
+          temperature: 0.2
+        });
+        responseContent = (response.content[0] as { type: 'text', text: string }).text;
+      }
+
+      if (!responseContent) {
+        throw new Error("Failed to get response from AI");
+      }
+
+      // Parse the response
+      const codeMatch = responseContent.match(/```[\w]*\n([\s\S]*?)```/);
+      const thoughtsMatch = responseContent.match(/Your Thoughts[:\s]*\n([\s\S]*?)(?=Time [Cc]omplexity|$)/);
+      const timeComplexityMatch = responseContent.match(/Time [Cc]omplexity[:\s]*([\s\S]*?)(?=Space [Cc]omplexity|$)/);
+      const spaceComplexityMatch = responseContent.match(/Space [Cc]omplexity[:\s]*([\s\S]*?)$/);
+
+      const solutionData = {
+        code: codeMatch ? codeMatch[1].trim() : responseContent,
+        your_thoughts: thoughtsMatch ? thoughtsMatch[1].trim() : "Solution regenerated based on error feedback.",
+        time_complexity: timeComplexityMatch ? timeComplexityMatch[1].trim() : "Not specified",
+        space_complexity: spaceComplexityMatch ? spaceComplexityMatch[1].trim() : "Not specified",
+        language: language
+      };
+
+      mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_SUCCESS, solutionData);
+    } catch (error: any) {
+      console.error("Error regenerating solution:", error);
+      mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_SOLUTION_ERROR, error.message || "Failed to regenerate solution");
+    }
+  }
+
+  public async regenerateDebugWithError(errorFeedback: string): Promise<void> {
+    const mainWindow = this.deps.getMainWindow();
+    if (!mainWindow) return;
+
+    const config = configHelper.loadConfig();
+    
+    // Verify we have a valid AI client
+    if (config.apiProvider === "openai" && !this.openaiClient) {
+      this.initializeAIClient();
+      if (!this.openaiClient) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_ERROR, "OpenAI API key not configured");
+        return;
+      }
+    } else if (config.apiProvider === "gemini" && !this.geminiApiKey) {
+      this.initializeAIClient();
+      if (!this.geminiApiKey) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_ERROR, "Gemini API key not configured");
+        return;
+      }
+    } else if (config.apiProvider === "anthropic" && !this.anthropicClient) {
+      this.initializeAIClient();
+      if (!this.anthropicClient) {
+        mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_ERROR, "Anthropic API key not configured");
+        return;
+      }
+    }
+
+    mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_START);
+
+    try {
+      const problemInfo = this.deps.getProblemInfo();
+      const language = await this.getLanguage();
+      
+      if (!problemInfo) {
+        throw new Error("No problem info available");
+      }
+
+      const promptText = `
+I previously provided debug feedback for this coding problem, but the solution is still not working correctly. Please provide a new, corrected solution.
+
+PROBLEM STATEMENT:
+${problemInfo.problem_statement}
+
+CONSTRAINTS:
+${problemInfo.constraints || "No specific constraints provided."}
+
+EXAMPLE INPUT:
+${problemInfo.example_input || "No example input provided."}
+
+EXAMPLE OUTPUT:
+${problemInfo.example_output || "No example output provided."}
+
+LANGUAGE: ${language}
+
+CURRENT ERROR OR INCORRECT OUTPUT:
+${errorFeedback}
+
+Please provide a completely corrected solution with:
+1. Code: A complete, working implementation in ${language} that fixes all the issues
+2. Your Thoughts: A detailed explanation of what was wrong and how you fixed it
+
+Make sure the solution is correct and handles all edge cases.
+`;
+
+      let responseContent;
+      
+      if (config.apiProvider === "openai") {
+        const debugResponse = await this.openaiClient!.chat.completions.create({
+          model: config.solutionModel || "gpt-4o",
+          messages: [
+            { role: "system", content: "You are an expert debugging assistant. Provide corrected solutions that fix all reported errors." },
+            { role: "user", content: promptText }
+          ],
+          max_tokens: 4000,
+          temperature: 0.2
+        });
+        responseContent = debugResponse.choices[0].message.content;
+      } else if (config.apiProvider === "gemini") {
+        const geminiMessages = [{
+          role: "user",
+          parts: [{ text: `You are an expert debugging assistant. Provide a corrected solution:\n\n${promptText}` }]
+        }];
+        const response = await axios.default.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/${config.solutionModel || "gemini-2.0-flash"}:generateContent?key=${this.geminiApiKey}`,
+          {
+            contents: geminiMessages,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 4000 }
+          }
+        );
+        const responseData = response.data as GeminiResponse;
+        responseContent = responseData.candidates[0].content.parts[0].text;
+      } else if (config.apiProvider === "anthropic") {
+        const messages = [{
+          role: "user" as const,
+          content: [{ type: "text" as const, text: `You are an expert debugging assistant. Provide a corrected solution:\n\n${promptText}` }]
+        }];
+        const response = await this.anthropicClient!.messages.create({
+          model: config.solutionModel || "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
+          messages: messages,
+          temperature: 0.2
+        });
+        responseContent = (response.content[0] as { type: 'text', text: string }).text;
+      }
+
+      if (!responseContent) {
+        throw new Error("Failed to get response from AI");
+      }
+
+      // Parse the response
+      const codeMatch = responseContent.match(/```[\w]*\n([\s\S]*?)```/);
+      const thoughtsMatch = responseContent.match(/Your Thoughts[:\s]*\n([\s\S]*?)(?=$)/);
+
+      const debugData = {
+        code: codeMatch ? codeMatch[1].trim() : responseContent,
+        your_thoughts: thoughtsMatch ? thoughtsMatch[1].trim() : "Solution regenerated based on debug feedback.",
+        language: language
+      };
+
+      mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_SUCCESS, debugData);
+    } catch (error: any) {
+      console.error("Error regenerating debug solution:", error);
+      mainWindow.webContents.send(this.deps.PROCESSING_EVENTS.REGENERATE_DEBUG_ERROR, error.message || "Failed to regenerate debug solution");
+    }
+  }
+
   private async processExtraScreenshotsHelper(
     screenshots: Array<{ path: string; data: string }>,
     signal: AbortSignal

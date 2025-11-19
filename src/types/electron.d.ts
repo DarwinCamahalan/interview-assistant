@@ -30,6 +30,16 @@ export interface ElectronAPI {
   onSolutionSuccess: (callback: (data: any) => void) => () => void
   onUnauthorized: (callback: () => void) => () => void
   onDebugError: (callback: (error: string) => void) => () => void
+  
+  // Error feedback
+  submitErrorFeedback: (errorFeedback: string, type: 'solution' | 'debug') => Promise<{ success?: boolean; error?: string }>
+  onRegenerateSolutionStart: (callback: () => void) => () => void
+  onRegenerateSolutionSuccess: (callback: (data: any) => void) => () => void
+  onRegenerateSolutionError: (callback: (error: string) => void) => () => void
+  onRegenerateDebugStart: (callback: () => void) => () => void
+  onRegenerateDebugSuccess: (callback: (data: any) => void) => () => void
+  onRegenerateDebugError: (callback: (error: string) => void) => () => void
+  
   openExternal: (url: string) => void
   toggleMainWindow: () => Promise<{ success: boolean; error?: string }>
   triggerScreenshot: () => Promise<{ success: boolean; error?: string }>
@@ -61,6 +71,13 @@ export interface ElectronAPI {
   openLink: (url: string) => void
   onApiKeyInvalid: (callback: () => void) => () => void
   removeListener: (eventName: string, callback: (...args: any[]) => void) => void
+  submitErrorFeedback: (errorFeedback: string, isDebug: boolean) => Promise<{ success: boolean; error?: string }>
+  onRegenerateSolutionStart: (callback: () => void) => () => void
+  onRegenerateSolutionSuccess: (callback: (data: any) => void) => () => void
+  onRegenerateSolutionError: (callback: (error: string) => void) => () => void
+  onRegenerateDebugStart: (callback: () => void) => () => void
+  onRegenerateDebugSuccess: (callback: (data: any) => void) => () => void
+  onRegenerateDebugError: (callback: (error: string) => void) => () => void
 }
 
 declare global {

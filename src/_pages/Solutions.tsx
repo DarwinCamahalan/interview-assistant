@@ -11,6 +11,7 @@ import SolutionCommands from "../components/Solutions/SolutionCommands"
 import Debug from "./Debug"
 import { useToast } from "../contexts/toast"
 import { COMMAND_KEY } from "../utils/platform"
+import { ErrorFeedback } from "../components/shared/ErrorFeedback"
 
 export const ContentSection = ({
   title,
@@ -32,7 +33,7 @@ export const ContentSection = ({
         </p>
       </div>
     ) : (
-      <div className="text-[13px] leading-[1.4] text-gray-100 max-w-[600px]">
+      <div className="text-[13px] leading-[1.4] text-gray-100 max-w-[350px]">
         {content}
       </div>
     )}
@@ -74,29 +75,33 @@ const SolutionSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative">
+        <div className="w-full relative max-h-[400px] overflow-hidden">
           <button
             onClick={copyToClipboard}
-            className="absolute top-2 right-2 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
+            className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <SyntaxHighlighter
-            showLineNumbers
-            language={currentLanguage == "golang" ? "go" : currentLanguage}
-            style={dracula}
-            customStyle={{
-              maxWidth: "100%",
-              margin: 0,
-              padding: "1rem",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              backgroundColor: "rgba(22, 27, 34, 0.5)"
-            }}
-            wrapLongLines={true}
-          >
-            {content as string}
-          </SyntaxHighlighter>
+          <div className="max-h-[400px] overflow-auto">
+            <SyntaxHighlighter
+              showLineNumbers
+              language={currentLanguage == "golang" ? "go" : currentLanguage}
+              style={dracula}
+              customStyle={{
+                maxWidth: "100%",
+                margin: 0,
+                padding: "1rem",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-all",
+                backgroundColor: "rgba(22, 27, 34, 0.5)",
+                height: "auto",
+                minHeight: "100px"
+              }}
+              wrapLongLines={true}
+            >
+              {content as string}
+            </SyntaxHighlighter>
+          </div>
         </div>
       )}
     </div>
@@ -181,6 +186,7 @@ const Solutions: React.FC<SolutionsProps> = ({
   const contentRef = useRef<HTMLDivElement>(null)
 
   const [debugProcessing, setDebugProcessing] = useState(false)
+  const [regeneratingSolution, setRegeneratingSolution] = useState(false)
   const [problemStatementData, setProblemStatementData] =
     useState<ProblemStatementData | null>(null)
   const [solutionData, setSolutionData] = useState<string | null>(null)
@@ -236,11 +242,16 @@ const Solutions: React.FC<SolutionsProps> = ({
     // Height update logic
     const updateDimensions = () => {
       if (contentRef.current) {
-        let contentHeight = contentRef.current.scrollHeight
+        // Use clientHeight instead of scrollHeight to respect max-height constraints
+        // This prevents the window from growing when code blocks have scrollbars
+        let contentHeight = contentRef.current.clientHeight || contentRef.current.scrollHeight
         const contentWidth = contentRef.current.scrollWidth
         if (isTooltipVisible) {
           contentHeight += tooltipHeight
         }
+        // Cap the height to prevent excessive window growth
+        const maxWindowHeight = 800
+        contentHeight = Math.min(contentHeight, maxWindowHeight)
         window.electronAPI.updateContentDimensions({
           width: contentWidth,
           height: contentHeight
@@ -300,7 +311,7 @@ const Solutions: React.FC<SolutionsProps> = ({
         setTimeComplexityData(null)
         setSpaceComplexityData(null)
       }),
-      window.electronAPI.onProblemExtracted((data) => {
+      window.electronAPI.onProblemExtracted((data: any) => {
         queryClient.setQueryData(["problem_statement"], data)
       }),
       //if there was an error processing the initial solution
@@ -323,7 +334,7 @@ const Solutions: React.FC<SolutionsProps> = ({
         console.error("Processing error:", error)
       }),
       //when the initial solution is generated, we'll set the solution data to that
-      window.electronAPI.onSolutionSuccess((data) => {
+      window.electronAPI.onSolutionSuccess((data: any) => {
         if (!data) {
           console.warn("Received empty or invalid solution data")
           return
@@ -347,7 +358,7 @@ const Solutions: React.FC<SolutionsProps> = ({
           try {
             const existing = await window.electronAPI.getScreenshots()
             const screenshots =
-              existing.previews?.map((p) => ({
+              existing.previews?.map((p: any) => ({
                 id: p.path,
                 path: p.path,
                 preview: p.preview,
@@ -370,7 +381,7 @@ const Solutions: React.FC<SolutionsProps> = ({
         setDebugProcessing(true)
       }),
       //the first time debugging works, we'll set the view to debug and populate the cache with the data
-      window.electronAPI.onDebugSuccess((data) => {
+      window.electronAPI.onDebugSuccess((data: any) => {
         queryClient.setQueryData(["new_solution"], data)
         setDebugProcessing(false)
       }),
@@ -389,6 +400,27 @@ const Solutions: React.FC<SolutionsProps> = ({
           "There are no extra screenshots to process.",
           "neutral"
         )
+      }),
+      window.electronAPI.onRegenerateSolutionStart(() => {
+        setRegeneratingSolution(true)
+      }),
+      window.electronAPI.onRegenerateSolutionSuccess((data: {
+        code: string
+        thoughts: string[]
+        time_complexity: string
+        space_complexity: string
+      }) => {
+        queryClient.setQueryData(["solution"], data)
+        setSolutionData(data.code || null)
+        setThoughtsData(data.thoughts || null)
+        setTimeComplexityData(data.time_complexity || null)
+        setSpaceComplexityData(data.space_complexity || null)
+        setRegeneratingSolution(false)
+        showToast("Success", "Solution regenerated successfully", "success")
+      }),
+      window.electronAPI.onRegenerateSolutionError((error: string) => {
+        showToast("Error", error || "Failed to regenerate solution", "error")
+        setRegeneratingSolution(false)
       }),
       // Removed out of credits handler - unlimited credits in this version
     ]
@@ -503,7 +535,7 @@ const Solutions: React.FC<SolutionsProps> = ({
           {/* Main Content - Modified width constraints */}
           <div className="w-full text-sm text-black bg-black/60 rounded-md">
             <div className="rounded-lg overflow-hidden">
-              <div className="px-4 py-3 space-y-4 max-w-full">
+              <div className="px-4 py-3 space-y-4 max-w-full overflow-auto max-h-[600px]">
                 {!solutionData && (
                   <>
                     <ContentSection
@@ -556,6 +588,17 @@ const Solutions: React.FC<SolutionsProps> = ({
                       timeComplexity={timeComplexityData}
                       spaceComplexity={spaceComplexityData}
                       isLoading={!timeComplexityData || !spaceComplexityData}
+                    />
+
+                    {/* Error Feedback Section */}
+                    <ErrorFeedback
+                      onSubmit={async (errorFeedback) => {
+                        const result = await window.electronAPI.submitErrorFeedback(errorFeedback, false)
+                        if (!result.success) {
+                          throw new Error(result.error || "Failed to submit error feedback")
+                        }
+                      }}
+                      isProcessing={regeneratingSolution}
                     />
                   </>
                 )}

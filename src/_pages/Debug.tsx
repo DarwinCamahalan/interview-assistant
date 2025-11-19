@@ -8,6 +8,7 @@ import SolutionCommands from "../components/Solutions/SolutionCommands"
 import { Screenshot } from "../types/screenshots"
 import { ComplexitySection, ContentSection } from "./Solutions"
 import { useToast } from "../contexts/toast"
+import { ErrorFeedback } from "../components/shared/ErrorFeedback"
 
 const CodeSection = ({
   title,
@@ -43,29 +44,33 @@ const CodeSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative">
+        <div className="w-full relative max-h-[400px] overflow-hidden">
           <button
             onClick={copyToClipboard}
-            className="absolute top-2 right-2 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
+            className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <SyntaxHighlighter
-            showLineNumbers
-            language={currentLanguage == "golang" ? "go" : currentLanguage}
-            style={dracula}
-            customStyle={{
-              maxWidth: "100%",
-              margin: 0,
-              padding: "1rem",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all",
-              backgroundColor: "rgba(22, 27, 34, 0.5)"
-            }}
-            wrapLongLines={true}
-          >
-            {code as string}
-          </SyntaxHighlighter>
+          <div className="max-h-[400px] overflow-auto">
+            <SyntaxHighlighter
+              showLineNumbers
+              language={currentLanguage == "golang" ? "go" : currentLanguage}
+              style={dracula}
+              customStyle={{
+                maxWidth: "100%",
+                margin: 0,
+                padding: "1rem",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-all",
+                backgroundColor: "rgba(22, 27, 34, 0.5)",
+                height: "auto",
+                minHeight: "100px"
+              }}
+              wrapLongLines={true}
+            >
+              {code as string}
+            </SyntaxHighlighter>
+          </div>
         </div>
       )}
     </div>
@@ -103,6 +108,7 @@ const Debug: React.FC<DebugProps> = ({
 }) => {
   const [tooltipVisible, setTooltipVisible] = useState(false)
   const [tooltipHeight, setTooltipHeight] = useState(0)
+  const [regeneratingDebug, setRegeneratingDebug] = useState(false)
   const { showToast } = useToast()
 
   const { data: screenshots = [], refetch } = useQuery<Screenshot[]>({
@@ -224,17 +230,56 @@ const Debug: React.FC<DebugProps> = ({
         )
         setIsProcessing(false)
         console.error("Processing error:", error)
+      }),
+      window.electronAPI.onRegenerateDebugStart(() => {
+        setRegeneratingDebug(true)
+      }),
+      window.electronAPI.onRegenerateDebugSuccess((data: {
+        code: string
+        debug_analysis: string
+        thoughts: string[]
+        time_complexity: string
+        space_complexity: string
+      }) => {
+        queryClient.setQueryData(["new_solution"], data)
+        if (data.debug_analysis) {
+          setDebugAnalysis(data.debug_analysis)
+          setNewCode(data.code || "// Debug mode - see analysis below")
+          if (data.debug_analysis.includes('\n\n')) {
+            const sections = data.debug_analysis.split('\n\n').filter(Boolean)
+            setThoughtsData(sections.slice(0, 3))
+          } else {
+            setThoughtsData(["Debug analysis based on error feedback"])
+          }
+        } else {
+          setNewCode(data.code || "// No analysis available")
+          setThoughtsData(data.thoughts || ["Debug analysis based on error feedback"])
+          setDebugAnalysis(null)
+        }
+        setTimeComplexityData(data.time_complexity || "N/A - Debug mode")
+        setSpaceComplexityData(data.space_complexity || "N/A - Debug mode")
+        setRegeneratingDebug(false)
+        showToast("Success", "Debug analysis regenerated successfully", "success")
+      }),
+      window.electronAPI.onRegenerateDebugError((error: string) => {
+        showToast("Error", error || "Failed to regenerate debug", "error")
+        setRegeneratingDebug(false)
       })
     ]
 
     // Set up resize observer
     const updateDimensions = () => {
       if (contentRef.current) {
-        let contentHeight = contentRef.current.scrollHeight
+        // Use clientHeight instead of scrollHeight to respect max-height constraints
+        // This prevents the window from growing when code blocks have scrollbars
+        let contentHeight = contentRef.current.clientHeight || contentRef.current.scrollHeight
         const contentWidth = contentRef.current.scrollWidth
         if (tooltipVisible) {
           contentHeight += tooltipHeight
         }
+        // Cap the height to prevent excessive window growth
+        const maxWindowHeight = 800
+        contentHeight = Math.min(contentHeight, maxWindowHeight)
         window.electronAPI.updateContentDimensions({
           width: contentWidth,
           height: contentHeight
@@ -307,7 +352,7 @@ const Debug: React.FC<DebugProps> = ({
       {/* Main Content */}
       <div className="w-full text-sm text-black bg-black/60 rounded-md">
         <div className="rounded-lg overflow-hidden">
-          <div className="px-4 py-3 space-y-4">
+          <div className="px-4 py-3 space-y-4 overflow-auto max-h-[600px]">
             {/* Thoughts Section */}
             <ContentSection
               title="What I Changed"
@@ -473,6 +518,18 @@ const Debug: React.FC<DebugProps> = ({
               timeComplexity={timeComplexityData}
               spaceComplexity={spaceComplexityData}
               isLoading={!timeComplexityData || !spaceComplexityData}
+            />
+
+            {/* Error Feedback Section */}
+            <ErrorFeedback
+              onSubmit={async (errorFeedback) => {
+                const result = await window.electronAPI.submitErrorFeedback(errorFeedback, true)
+                if (!result.success) {
+                  throw new Error(result.error || "Failed to submit error feedback")
+                }
+              }}
+              isProcessing={regeneratingDebug}
+              placeholder="Paste error message, incorrect output, or additional issues here..."
             />
           </div>
         </div>

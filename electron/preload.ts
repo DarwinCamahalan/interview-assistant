@@ -19,7 +19,17 @@ export const PROCESSING_EVENTS = {
   //states for processing the debugging
   DEBUG_START: "debug-start",
   DEBUG_SUCCESS: "debug-success",
-  DEBUG_ERROR: "debug-error"
+  DEBUG_ERROR: "debug-error",
+
+  //states for regenerating solutions with error feedback
+  REGENERATE_SOLUTION_START: "regenerate-solution-start",
+  REGENERATE_SOLUTION_SUCCESS: "regenerate-solution-success",
+  REGENERATE_SOLUTION_ERROR: "regenerate-solution-error",
+
+  //states for regenerating debug with error feedback
+  REGENERATE_DEBUG_START: "regenerate-debug-start",
+  REGENERATE_DEBUG_SUCCESS: "regenerate-debug-success",
+  REGENERATE_DEBUG_ERROR: "regenerate-debug-error"
 } as const
 
 // At the top of the file
@@ -93,6 +103,46 @@ const electronAPI = {
     ipcRenderer.on(PROCESSING_EVENTS.DEBUG_ERROR, subscription)
     return () => {
       ipcRenderer.removeListener(PROCESSING_EVENTS.DEBUG_ERROR, subscription)
+    }
+  },
+  
+  // Error feedback
+  submitErrorFeedback: (errorFeedback: string, type: 'solution' | 'debug') =>
+    ipcRenderer.invoke("submit-error-feedback", errorFeedback, type),
+  onRegenerateSolutionStart: (callback: () => void) => {
+    ipcRenderer.on("regenerate-solution-start", () => callback())
+    return () => {
+      ipcRenderer.removeListener("regenerate-solution-start", () => callback())
+    }
+  },
+  onRegenerateSolutionSuccess: (callback: (data: any) => void) => {
+    ipcRenderer.on("regenerate-solution-success", (_event, data) => callback(data))
+    return () => {
+      ipcRenderer.removeListener("regenerate-solution-success", (_event, data) => callback(data))
+    }
+  },
+  onRegenerateSolutionError: (callback: (error: string) => void) => {
+    ipcRenderer.on("regenerate-solution-error", (_event, error) => callback(error))
+    return () => {
+      ipcRenderer.removeListener("regenerate-solution-error", (_event, error) => callback(error))
+    }
+  },
+  onRegenerateDebugStart: (callback: () => void) => {
+    ipcRenderer.on("regenerate-debug-start", () => callback())
+    return () => {
+      ipcRenderer.removeListener("regenerate-debug-start", () => callback())
+    }
+  },
+  onRegenerateDebugSuccess: (callback: (data: any) => void) => {
+    ipcRenderer.on("regenerate-debug-success", (_event, data) => callback(data))
+    return () => {
+      ipcRenderer.removeListener("regenerate-debug-success", (_event, data) => callback(data))
+    }
+  },
+  onRegenerateDebugError: (callback: (error: string) => void) => {
+    ipcRenderer.on("regenerate-debug-error", (_event, error) => callback(error))
+    return () => {
+      ipcRenderer.removeListener("regenerate-debug-error", (_event, error) => callback(error))
     }
   },
   onSolutionError: (callback: (error: string) => void) => {
@@ -236,7 +286,7 @@ const electronAPI = {
       ipcRenderer.removeListener("delete-last-screenshot", subscription)
     }
   },
-  deleteLastScreenshot: () => ipcRenderer.invoke("delete-last-screenshot")
+  deleteLastScreenshot: () => ipcRenderer.invoke("delete-last-screenshot"),
 }
 
 // Before exposing the API

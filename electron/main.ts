@@ -47,7 +47,13 @@ const state = {
     INITIAL_SOLUTION_ERROR: "solution-error",
     DEBUG_START: "debug-start",
     DEBUG_SUCCESS: "debug-success",
-    DEBUG_ERROR: "debug-error"
+    DEBUG_ERROR: "debug-error",
+    REGENERATE_SOLUTION_START: "regenerate-solution-start",
+    REGENERATE_SOLUTION_SUCCESS: "regenerate-solution-success",
+    REGENERATE_SOLUTION_ERROR: "regenerate-solution-error",
+    REGENERATE_DEBUG_START: "regenerate-debug-start",
+    REGENERATE_DEBUG_SUCCESS: "regenerate-debug-success",
+    REGENERATE_DEBUG_ERROR: "regenerate-debug-error"
   } as const
 }
 

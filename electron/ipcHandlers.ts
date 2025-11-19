@@ -251,6 +251,21 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
 
+  // Error feedback handler
+  ipcMain.handle("submit-error-feedback", async (_event, errorFeedback: string, type: 'solution' | 'debug') => {
+    try {
+      if (type === 'solution') {
+        await deps.processingHelper?.regenerateSolutionWithError(errorFeedback);
+      } else {
+        await deps.processingHelper?.regenerateDebugWithError(errorFeedback);
+      }
+      return { success: true };
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      return { error: "Failed to submit feedback" };
+    }
+  });
+
   // Reset handlers
   ipcMain.handle("trigger-reset", () => {
     try {
