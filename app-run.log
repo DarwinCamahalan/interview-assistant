@@ -1,0 +1,156 @@
+=== Darwin Camahalan - Invisible Edition (No Paywall) ===
+
+IMPORTANT: This app is designed to be INVISIBLE by default!
+Use the keyboard shortcuts to control it:
+
+- Toggle Visibility: Cmd+B
+- Take Screenshot: Cmd+H
+- Process Screenshots: Cmd+Enter
+- Move Window: Cmd+Arrows (Left/Right/Up/Down)
+- Adjust Opacity: Cmd+[ (decrease) / Cmd+] (increase)
+- Reset View: Cmd+R
+- Quit App: Cmd+Q
+
+When you press Cmd+B, the window will toggle between visible and invisible.
+If movement shortcuts aren't working, try making the window visible first with Cmd+B.
+
+=== Step 1: Creating required directories... ===
+=== Step 2: Cleaning previous builds... ===
+Removing old build files to ensure a fresh start...
+=== Step 3: Building application... ===
+This may take a moment...
+
+> darwin-camahalan@1.0.19 build
+> cross-env NODE_ENV=production npm run clean && vite build && tsc -p tsconfig.electron.json
+
+
+> darwin-camahalan@1.0.19 clean
+> npx rimraf dist dist-electron
+
+vite v6.2.5 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2774 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.54 kB │ gzip:   0.35 kB
+dist/assets/index-BlUUboIZ.css   32.40 kB │ gzip:   6.88 kB
+dist/assets/index-Dj7wL3DF.js   975.68 kB │ gzip: 328.98 kB │ map: 2,445.26 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.79s
+vite v6.2.5 building for production...
+transforming...
+✓ 607 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-electron/main.js                       1.25 kB │ gzip:   0.42 kB │ map:     0.12 kB
+dist-electron/fileFromPath-CNi1jreD.js      4.72 kB │ gzip:   1.58 kB │ map:     7.87 kB
+dist-electron/main-7Ig3aT3H.js          2,003.89 kB │ gzip: 406.71 kB │ map: 2,925.66 kB
+✓ built in 1.13s
+vite v6.2.5 building for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-electron/preload.js  7.04 kB │ gzip: 1.69 kB │ map: 18.67 kB
+✓ built in 8ms
+=== Step 4: Launching in stealth mode... ===
+Remember: Cmd+B to make it visible, Cmd+[ and Cmd+] to adjust opacity!
+
+App is now running invisibly! Press Cmd+B to make it visible.
+
+If you encounter any issues:
+1. Make sure you've installed dependencies with 'npm install'
+2. Make sure this script has execute permissions (chmod +x stealth-run.sh)
+3. Press Cmd+B multiple times to toggle visibility
+4. Check Activity Monitor to verify the app is running
+Config path: /Users/darwin_camahalan/Library/Application Support/Electron/config.json
+Loading env variables from: /Users/darwin_camahalan/My Files/CODES/interview-assistant/node_modules/electron/dist/Electron.app/Contents/Resources/.env
+Environment variables loaded for open-source version
+Deleted existing screenshot: /Users/darwin_camahalan/Library/Application Support/darwin-camahalan/screenshots/84da06af-388d-487a-bd02-ddfb3cde165e.png
+Screenshot directories cleaned successfully
+OpenAI client initialized successfully
+Initializing IPC handlers
+Window: 600x800 at (2800, 40) | Screen: 3440x1347
+Loading production build: /Users/darwin_camahalan/My Files/CODES/interview-assistant/dist/index.html
+Initial opacity from config: 1
+Setting initial opacity to 1
+Initializing auto-updater...
+Skipping auto-updater in development mode
+Auto-updater initialized in production mode
+[77847:1119/210133.320403:ERROR:simple_backend_impl.cc(751)] Simple Cache Backend: wrong file structure on disk: 2 path: /Users/darwin_camahalan/Library/Application Support/darwin-camahalan/session/Shared Dictionary/cache
+[77847:1119/210133.320880:ERROR:disk_cache.cc(208)] Unable to create cache
+[77847:1119/210133.334492:ERROR:simple_backend_impl.cc(751)] Simple Cache Backend: wrong file structure on disk: 2 path: /Users/darwin_camahalan/Library/Application Support/darwin-camahalan/session/Cache/Cache_Data
+[77847:1119/210133.334774:ERROR:disk_cache.cc(208)] Unable to create cache
+Window finished loading
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + down pressed. Moving window down.
+{
+  newY: 100,
+  maxUpLimit: -536,
+  maxDownLimit: 1883,
+  screenHeight: 1347,
+  windowHeight: 804,
+  currentY: 40
+}
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + down pressed. Moving window down.
+{
+  newY: 160,
+  maxUpLimit: -536,
+  maxDownLimit: 1883,
+  screenHeight: 1347,
+  windowHeight: 804,
+  currentY: 100
+}
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + down pressed. Moving window down.
+{
+  newY: 220,
+  maxUpLimit: -536,
+  maxDownLimit: 1883,
+  screenHeight: 1347,
+  windowHeight: 804,
+  currentY: 160
+}
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Command/Ctrl + Left pressed. Moving window left.
+Processing screenshots in view: queue
+Processing main queue screenshots: []
+No screenshots found in queue
+Setting view in ScreenshotHelper: queue
+Current queues - Main: [] Extra: []
+Setting view in ScreenshotHelper: queue
+Current queues - Main: [] Extra: []
+Command/Ctrl + Q pressed. Quitting application.

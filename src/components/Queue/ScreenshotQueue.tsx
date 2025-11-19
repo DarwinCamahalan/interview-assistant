@@ -17,13 +17,13 @@ const ScreenshotQueue: React.FC<ScreenshotQueueProps> = ({
   onDeleteScreenshot
 }) => {
   if (screenshots.length === 0) {
-    return <></>
+    return null
   }
 
-  const displayScreenshots = screenshots.slice(0, 5)
+  const displayScreenshots = screenshots.slice(0, 10)
 
   return (
-    <div className="flex gap-4">
+    <>
       {displayScreenshots.map((screenshot, index) => (
         <ScreenshotItem
           key={screenshot.path}
@@ -33,7 +33,7 @@ const ScreenshotQueue: React.FC<ScreenshotQueueProps> = ({
           onDelete={onDeleteScreenshot}
         />
       ))}
-    </div>
+    </>
   )
 }
 

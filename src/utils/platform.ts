@@ -1,17 +1,90 @@
-// Get the platform safely
-const getPlatform = () => {
-  try {
-    return window.electronAPI?.getPlatform() || 'win32' // Default to win32 if API is not available
-  } catch {
-    return 'win32' // Default to win32 if there's an error
+// Platform detection utilities
+
+export const isMac = () => {
+  return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+};
+
+export const isWindows = () => {
+  return navigator.platform.toUpperCase().indexOf('WIN') >= 0;
+};
+
+export const getOS = (): 'mac' | 'windows' | 'linux' => {
+  const platform = navigator.platform.toUpperCase();
+  if (platform.indexOf('MAC') >= 0) return 'mac';
+  if (platform.indexOf('WIN') >= 0) return 'windows';
+  return 'linux';
+};
+
+export const COMMAND_KEY = isMac() ? '⌘' : 'Ctrl';
+
+export const formatShortcutForDisplay = (shortcut: string): string => {
+  const os = getOS();
+  
+  if (os === 'mac') {
+    return shortcut
+      .replace(/CommandOrControl/g, '⌘')
+      .replace(/Command/g, '⌘')
+      .replace(/Cmd/g, '⌘')
+      .replace(/Control/g, '⌃')
+      .replace(/Ctrl/g, '⌃')
+      .replace(/Alt/g, '⌥')
+      .replace(/Option/g, '⌥')
+      .replace(/Shift/g, '⇧')
+      .replace(/\+/g, ' ');
+  } else {
+    return shortcut
+      .replace(/CommandOrControl/g, 'Ctrl')
+      .replace(/Command/g, 'Ctrl')
+      .replace(/Cmd/g, 'Ctrl')
+      .replace(/Control/g, 'Ctrl')
+      .replace(/\+/g, ' + ');
   }
-}
+};
 
-// Platform-specific command key symbol
-export const COMMAND_KEY = getPlatform() === 'darwin' ? '⌘' : 'Ctrl'
-
-// Helper to check if we're on Windows
-export const isWindows = getPlatform() === 'win32'
-
-// Helper to check if we're on macOS
-export const isMacOS = getPlatform() === 'darwin' 
+export const recordKeyPress = (event: KeyboardEvent): string => {
+  event.preventDefault();
+  
+  const keys: string[] = [];
+  
+  // Add modifiers
+  if (event.ctrlKey || event.metaKey) {
+    keys.push('CommandOrControl');
+  }
+  if (event.altKey) {
+    keys.push('Alt');
+  }
+  if (event.shiftKey) {
+    keys.push('Shift');
+  }
+  
+  // Add the main key (if it's not a modifier)
+  if (!['Control', 'Meta', 'Alt', 'Shift'].includes(event.key)) {
+    let key = event.key;
+    
+    // Normalize some keys
+    if (key === ' ') key = 'Space';
+    if (key.length === 1) key = key.toUpperCase();
+    
+    // Special keys
+    const specialKeys: Record<string, string> = {
+      'Enter': 'Enter',
+      'Return': 'Enter',
+      'Escape': 'Escape',
+      'Tab': 'Tab',
+      'Backspace': 'Backspace',
+      'Delete': 'Delete',
+      'ArrowUp': 'Up',
+      'ArrowDown': 'Down',
+      'ArrowLeft': 'Left',
+      'ArrowRight': 'Right',
+    };
+    
+    if (specialKeys[event.key]) {
+      key = specialKeys[event.key];
+    }
+    
+    keys.push(key);
+  }
+  
+  return keys.join('+');
+};

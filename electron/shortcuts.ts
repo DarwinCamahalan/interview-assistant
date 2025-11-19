@@ -4,9 +4,21 @@ import { configHelper } from "./ConfigHelper"
 
 export class ShortcutsHelper {
   private deps: IShortcutsHelperDeps
+  private registeredShortcuts: string[] = []
 
   constructor(deps: IShortcutsHelperDeps) {
     this.deps = deps
+  }
+
+  public unregisterAllShortcuts(): void {
+    this.registeredShortcuts.forEach(shortcut => {
+      try {
+        globalShortcut.unregister(shortcut)
+      } catch (error) {
+        console.error(`Failed to unregister shortcut ${shortcut}:`, error)
+      }
+    })
+    this.registeredShortcuts = []
   }
 
   private adjustOpacity(delta: number): void {
@@ -35,50 +47,106 @@ export class ShortcutsHelper {
   }
 
   public registerGlobalShortcuts(): void {
-    globalShortcut.register("CommandOrControl+H", async () => {
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        console.log("Taking screenshot...")
-        try {
-          const screenshotPath = await this.deps.takeScreenshot()
-          const preview = await this.deps.getImagePreview(screenshotPath)
-          mainWindow.webContents.send("screenshot-taken", {
-            path: screenshotPath,
-            preview
-          })
-        } catch (error) {
-          console.error("Error capturing screenshot:", error)
+    // Unregister all existing shortcuts first
+    this.unregisterAllShortcuts()
+
+    // Load shortcuts from config
+    const config = configHelper.loadConfig()
+    const shortcuts = config.shortcuts || {
+      takeScreenshot: 'CommandOrControl+H',
+      processQueue: 'CommandOrControl+Enter',
+      toggleWindow: 'CommandOrControl+B',
+      resetView: 'CommandOrControl+R',
+      deleteLastScreenshot: 'CommandOrControl+L',
+    }
+
+    // Register take screenshot
+    try {
+      globalShortcut.register(shortcuts.takeScreenshot, async () => {
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow) {
+          console.log("Taking screenshot...")
+          try {
+            const screenshotPath = await this.deps.takeScreenshot()
+            const preview = await this.deps.getImagePreview(screenshotPath)
+            mainWindow.webContents.send("screenshot-taken", {
+              path: screenshotPath,
+              preview
+            })
+          } catch (error) {
+            console.error("Error capturing screenshot:", error)
+          }
         }
-      }
-    })
+      })
+      this.registeredShortcuts.push(shortcuts.takeScreenshot)
+    } catch (error) {
+      console.error(`Failed to register takeScreenshot shortcut:`, error)
+    }
 
-    globalShortcut.register("CommandOrControl+Enter", async () => {
-      await this.deps.processingHelper?.processScreenshots()
-    })
+    // Register process queue
+    try {
+      globalShortcut.register(shortcuts.processQueue, async () => {
+        await this.deps.processingHelper?.processScreenshots()
+      })
+      this.registeredShortcuts.push(shortcuts.processQueue)
+    } catch (error) {
+      console.error(`Failed to register processQueue shortcut:`, error)
+    }
 
-    globalShortcut.register("CommandOrControl+R", () => {
-      console.log(
-        "Command + R pressed. Canceling requests and resetting queues..."
-      )
+    // Register reset view
+    try {
+      globalShortcut.register(shortcuts.resetView, () => {
+        console.log(
+          "Reset pressed. Canceling requests and resetting queues..."
+        )
 
-      // Cancel ongoing API requests
-      this.deps.processingHelper?.cancelOngoingRequests()
+        // Cancel ongoing API requests
+        this.deps.processingHelper?.cancelOngoingRequests()
 
-      // Clear both screenshot queues
-      this.deps.clearQueues()
+        // Clear both screenshot queues
+        this.deps.clearQueues()
 
-      console.log("Cleared queues.")
+        console.log("Cleared queues.")
 
-      // Update the view state to 'queue'
-      this.deps.setView("queue")
+        // Update the view state to 'queue'
+        this.deps.setView("queue")
 
-      // Notify renderer process to switch view to 'queue'
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send("reset-view")
-        mainWindow.webContents.send("reset")
-      }
-    })
+        // Notify renderer process to switch view to 'queue'
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("reset-view")
+          mainWindow.webContents.send("reset")
+        }
+      })
+      this.registeredShortcuts.push(shortcuts.resetView)
+    } catch (error) {
+      console.error(`Failed to register resetView shortcut:`, error)
+    }
+
+    // Register toggle window
+    try {
+      globalShortcut.register(shortcuts.toggleWindow, () => {
+        console.log("Toggle window pressed.")
+        this.deps.toggleMainWindow()
+      })
+      this.registeredShortcuts.push(shortcuts.toggleWindow)
+    } catch (error) {
+      console.error(`Failed to register toggleWindow shortcut:`, error)
+    }
+
+    // Register delete last screenshot
+    try {
+      globalShortcut.register(shortcuts.deleteLastScreenshot, () => {
+        console.log("Delete last screenshot pressed.")
+        const mainWindow = this.deps.getMainWindow()
+        if (mainWindow) {
+          mainWindow.webContents.send("delete-last-screenshot")
+        }
+      })
+      this.registeredShortcuts.push(shortcuts.deleteLastScreenshot)
+    } catch (error) {
+      console.error(`Failed to register deleteLastScreenshot shortcut:`, error)
+    }
 
     // New shortcuts for moving the window
     globalShortcut.register("CommandOrControl+Left", () => {
@@ -101,63 +169,18 @@ export class ShortcutsHelper {
       this.deps.moveWindowUp()
     })
 
-    globalShortcut.register("CommandOrControl+B", () => {
-      console.log("Command/Ctrl + B pressed. Toggling window visibility.")
-      this.deps.toggleMainWindow()
-    })
+    // Register quit (always CommandOrControl+Q)
+    try {
+      globalShortcut.register("CommandOrControl+Q", () => {
+        console.log("Command/Ctrl + Q pressed. Quitting application.")
+        app.quit()
+      })
+      this.registeredShortcuts.push("CommandOrControl+Q")
+    } catch (error) {
+      console.error(`Failed to register quit shortcut:`, error)
+    }
 
-    globalShortcut.register("CommandOrControl+Q", () => {
-      console.log("Command/Ctrl + Q pressed. Quitting application.")
-      app.quit()
-    })
-
-    // Adjust opacity shortcuts
-    globalShortcut.register("CommandOrControl+[", () => {
-      console.log("Command/Ctrl + [ pressed. Decreasing opacity.")
-      this.adjustOpacity(-0.1)
-    })
-
-    globalShortcut.register("CommandOrControl+]", () => {
-      console.log("Command/Ctrl + ] pressed. Increasing opacity.")
-      this.adjustOpacity(0.1)
-    })
-    
-    // Zoom controls
-    globalShortcut.register("CommandOrControl+-", () => {
-      console.log("Command/Ctrl + - pressed. Zooming out.")
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        const currentZoom = mainWindow.webContents.getZoomLevel()
-        mainWindow.webContents.setZoomLevel(currentZoom - 0.5)
-      }
-    })
-    
-    globalShortcut.register("CommandOrControl+0", () => {
-      console.log("Command/Ctrl + 0 pressed. Resetting zoom.")
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        mainWindow.webContents.setZoomLevel(0)
-      }
-    })
-    
-    globalShortcut.register("CommandOrControl+=", () => {
-      console.log("Command/Ctrl + = pressed. Zooming in.")
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        const currentZoom = mainWindow.webContents.getZoomLevel()
-        mainWindow.webContents.setZoomLevel(currentZoom + 0.5)
-      }
-    })
-    
-    // Delete last screenshot shortcut
-    globalShortcut.register("CommandOrControl+L", () => {
-      console.log("Command/Ctrl + L pressed. Deleting last screenshot.")
-      const mainWindow = this.deps.getMainWindow()
-      if (mainWindow) {
-        // Send an event to the renderer to delete the last screenshot
-        mainWindow.webContents.send("delete-last-screenshot")
-      }
-    })
+    console.log(`Registered shortcuts:`, this.registeredShortcuts)
     
     // Unregister shortcuts when quitting
     app.on("will-quit", () => {

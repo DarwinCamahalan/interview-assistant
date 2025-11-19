@@ -7,7 +7,7 @@ import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
 
 import { ProblemStatementData } from "../types/solutions"
-import SolutionCommands from "../components/Solutions/SolutionCommands"
+import { ModernSolutionActions } from "../components/Solutions/ModernSolutionActions"
 import Debug from "./Debug"
 import { useToast } from "../contexts/toast"
 import { COMMAND_KEY } from "../utils/platform"
@@ -22,18 +22,19 @@ export const ContentSection = ({
   content: React.ReactNode
   isLoading: boolean
 }) => (
-  <div className="space-y-2">
-    <h2 className="text-[13px] font-medium text-white tracking-wide">
+  <div className="glass-card rounded-xl p-4 space-y-3 fade-in">
+    <div className="flex items-center gap-2">
+      <div className="w-1 h-5 bg-gradient-accent rounded-full"></div>
+      <h2 className="text-sm font-semibold text-white tracking-wide">
       {title}
     </h2>
+    </div>
     {isLoading ? (
-      <div className="mt-4 flex">
-        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-          Extracting problem statement...
-        </p>
+      <div className="flex items-center gap-3 p-4">
+        <div className="shimmer w-full h-20 rounded-lg"></div>
       </div>
     ) : (
-      <div className="text-[13px] leading-[1.4] text-gray-100 w-full">
+      <div className="text-sm leading-relaxed text-gray-100 w-full">
         {content}
       </div>
     )}
@@ -62,27 +63,44 @@ const SolutionSection = ({
   }
 
   return (
-    <div className="space-y-2 relative">
-      <h2 className="text-[13px] font-medium text-white tracking-wide">
+    <div className="glass-card rounded-xl overflow-hidden fade-in">
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-5 bg-gradient-accent-green rounded-full"></div>
+          <h2 className="text-sm font-semibold text-white tracking-wide">
         {title}
       </h2>
-      {isLoading ? (
-        <div className="space-y-1.5">
-          <div className="mt-4 flex">
-            <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-              Loading solutions...
-            </p>
-          </div>
         </div>
-      ) : (
-        <div className="w-full relative overflow-hidden">
+        {!isLoading && (
           <button
             onClick={copyToClipboard}
-            className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 modern-button"
           >
-            {copied ? "Copied!" : "Copy"}
+            {copied ? (
+              <>
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Copied!
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy
+              </>
+            )}
           </button>
-          <div className="overflow-auto">
+        )}
+      </div>
+      {isLoading ? (
+        <div className="p-4">
+          <div className="shimmer w-full h-64 rounded-lg"></div>
+        </div>
+      ) : (
+        <div className="relative">
+          <div className="overflow-auto max-h-96">
             <SyntaxHighlighter
               showLineNumbers
               language={currentLanguage == "golang" ? "go" : currentLanguage}
@@ -93,9 +111,11 @@ const SolutionSection = ({
                 padding: "1rem",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-all",
-                backgroundColor: "rgba(22, 27, 34, 0.5)",
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
                 height: "auto",
-                minHeight: "100px"
+                minHeight: "100px",
+                fontSize: "0.8rem",
+                borderRadius: "0"
               }}
               wrapLongLines={true}
             >
@@ -138,30 +158,37 @@ export const ComplexitySection = ({
   const formattedSpaceComplexity = formatComplexity(spaceComplexity);
   
   return (
-    <div className="space-y-2">
-      <h2 className="text-[13px] font-medium text-white tracking-wide">
-        Complexity
+    <div className="glass-card rounded-xl p-4 space-y-3 fade-in">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-5 bg-gradient-accent-blue rounded-full"></div>
+        <h2 className="text-sm font-semibold text-white tracking-wide">
+          Complexity Analysis
       </h2>
+      </div>
       {isLoading ? (
-        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-          Calculating complexity...
-        </p>
+        <div className="shimmer w-full h-24 rounded-lg"></div>
       ) : (
-        <div className="space-y-3">
-          <div className="text-[13px] leading-[1.4] text-gray-100 bg-white/5 rounded-md p-3">
-            <div className="flex items-start gap-2">
-              <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-              <div>
-                <strong>Time:</strong> {formattedTimeComplexity}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="glass-panel-dark rounded-lg p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-xs text-white/60 font-medium">Time</span>
               </div>
+            <div className="text-sm font-semibold text-white font-mono">
+              {formattedTimeComplexity}
             </div>
           </div>
-          <div className="text-[13px] leading-[1.4] text-gray-100 bg-white/5 rounded-md p-3">
-            <div className="flex items-start gap-2">
-              <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-              <div>
-                <strong>Space:</strong> {formattedSpaceComplexity}
+          <div className="glass-panel-dark rounded-lg p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+              </svg>
+              <span className="text-xs text-white/60 font-medium">Space</span>
               </div>
+            <div className="text-sm font-semibold text-white font-mono">
+              {formattedSpaceComplexity}
             </div>
           </div>
         </div>
@@ -197,9 +224,6 @@ const Solutions: React.FC<SolutionsProps> = ({
   const [spaceComplexityData, setSpaceComplexityData] = useState<string | null>(
     null
   )
-
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false)
-  const [tooltipHeight, setTooltipHeight] = useState(0)
 
   const [isResetting, setIsResetting] = useState(false)
 
@@ -239,14 +263,7 @@ const Solutions: React.FC<SolutionsProps> = ({
   const { showToast } = useToast()
 
   useEffect(() => {
-    const updateDimensions = () => {
-      window.electronAPI.updateContentDimensions({
-        width: 900,
-        height: 1200
-      })
-    }
-
-    updateDimensions()
+    // No longer force window dimensions - let user control window size
 
     // Set up event listeners
     const cleanupFunctions = [
@@ -441,11 +458,6 @@ const Solutions: React.FC<SolutionsProps> = ({
     return () => unsubscribe()
   }, [queryClient])
 
-  const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
-    setIsTooltipVisible(visible)
-    setTooltipHeight(height)
-  }
-
   const handleDeleteExtraScreenshot = async (index: number) => {
     const screenshotToDelete = extraScreenshots[index]
 
@@ -486,38 +498,46 @@ const Solutions: React.FC<SolutionsProps> = ({
           setLanguage={setLanguage}
         />
       ) : (
-        <div ref={contentRef} className="relative overflow-y-auto h-full">
-          <div className="space-y-3 px-4 py-3">
-          {/* Conditionally render the screenshot queue if solutionData is available */}
-          {solutionData && (
-            <div className="bg-transparent w-fit">
-              <div className="pb-3">
-                <div className="space-y-3 w-fit">
+        <div ref={contentRef} className="relative overflow-y-auto h-full p-4 space-y-4">
+          {/* Header Section */}
+          <div className="glass-card rounded-xl p-4 fade-in">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-white text-lg font-semibold gradient-text">AI Solution</h1>
+                <p className="text-white/50 text-xs mt-1">
+                  {solutionData ? 'Analysis complete' : 'Processing your screenshots...'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`status-dot ${!problemStatementData || !solutionData ? 'processing' : 'active'}`}></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Extra Screenshots Section */}
+          {solutionData && extraScreenshots.length > 0 && (
+            <div className="glass-card rounded-xl p-4 fade-in">
+              <h2 className="text-white text-sm font-medium mb-3">Additional Context</h2>
+              <div className="grid grid-cols-2 gap-3">
                   <ScreenshotQueue
                     isLoading={debugProcessing}
                     screenshots={extraScreenshots}
                     onDeleteScreenshot={handleDeleteExtraScreenshot}
                   />
-                </div>
               </div>
             </div>
           )}
 
-          {/* Navbar of commands with the SolutionsHelper */}
-          <SolutionCommands
-            onTooltipVisibilityChange={handleTooltipVisibilityChange}
-            isProcessing={!problemStatementData || !solutionData}
-            extraScreenshots={extraScreenshots}
-            credits={credits}
-            currentLanguage={currentLanguage}
-            setLanguage={setLanguage}
-          />
+          {/* Actions Section */}
+          <div className="fade-in">
+            <ModernSolutionActions
+              hasExtraScreenshots={extraScreenshots.length > 0}
+            />
+          </div>
 
-          {/* Main Content - Modified width constraints */}
-          <div className="w-full text-sm text-black bg-black/60 rounded-md">
-            <div className="rounded-lg overflow-hidden">
-              <div className="px-4 py-3 space-y-4 max-w-full">
-                {!solutionData && (
+          {/* Main Content */}
+          <div className="space-y-4">
+            {!solutionData ? (
                   <>
                     <ContentSection
                       title="Problem Statement"
@@ -525,33 +545,40 @@ const Solutions: React.FC<SolutionsProps> = ({
                       isLoading={!problemStatementData}
                     />
                     {problemStatementData && (
-                      <div className="mt-4 flex">
-                        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-                          Generating solutions...
+                  <div className="glass-card rounded-xl p-6 text-center fade-in">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 border-4 border-white/10 border-t-purple-500 rounded-full animate-spin"></div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white text-sm font-medium">Generating solution...</p>
+                        <p className="text-white/50 text-xs">
+                          AI is analyzing your problem
                         </p>
                       </div>
-                    )}
-                  </>
+                    </div>
+                  </div>
                 )}
-
-                {solutionData && (
+              </>
+            ) : (
                   <>
                     <ContentSection
-                      title={`My Thoughts`}
+                  title="AI Approach & Insights"
                       content={
                         thoughtsData && (
-                          <div className="space-y-3">
-                            <div className="space-y-1">
+                      <div className="space-y-2">
                               {thoughtsData.map((thought, index) => (
                                 <div
                                   key={index}
-                                  className="flex items-start gap-2"
+                            className="flex items-start gap-3 p-3 glass-panel-dark rounded-lg slide-in-right"
+                            style={{ animationDelay: `${index * 0.1}s` }}
                                 >
-                                  <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-                                  <div>{thought}</div>
-                                </div>
-                              ))}
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs font-semibold">
+                              {index + 1}
                             </div>
+                            <div className="text-sm text-gray-100">{thought}</div>
+                          </div>
+                        ))}
                           </div>
                         )
                       }
@@ -559,7 +586,7 @@ const Solutions: React.FC<SolutionsProps> = ({
                     />
 
                     <SolutionSection
-                      title="Solution"
+                  title="Solution Code"
                       content={solutionData}
                       isLoading={!solutionData}
                       currentLanguage={currentLanguage}
@@ -572,6 +599,7 @@ const Solutions: React.FC<SolutionsProps> = ({
                     />
 
                     {/* Error Feedback Section */}
+                <div className="glass-card rounded-xl p-4 fade-in">
                     <ErrorFeedback
                       onSubmit={async (errorFeedback) => {
                         const result = await window.electronAPI.submitErrorFeedback(errorFeedback, false)
@@ -581,11 +609,9 @@ const Solutions: React.FC<SolutionsProps> = ({
                       }}
                       isProcessing={regeneratingSolution}
                     />
+                </div>
                   </>
                 )}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       )}

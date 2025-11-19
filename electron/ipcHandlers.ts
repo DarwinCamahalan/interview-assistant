@@ -14,7 +14,24 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
   })
 
   ipcMain.handle("update-config", (_event, updates) => {
-    return configHelper.updateConfig(updates);
+    const result = configHelper.updateConfig(updates);
+    
+    // If shortcuts were updated, reload them
+    if (updates.shortcuts && deps.shortcutsHelper) {
+      console.log('Shortcuts updated, reloading...');
+      deps.shortcutsHelper.registerGlobalShortcuts();
+    }
+    
+    return result;
+  })
+  
+  ipcMain.handle("reload-shortcuts", () => {
+    if (deps.shortcutsHelper) {
+      console.log('Manually reloading shortcuts...');
+      deps.shortcutsHelper.registerGlobalShortcuts();
+      return { success: true };
+    }
+    return { success: false, error: 'Shortcuts helper not available' };
   })
 
   ipcMain.handle("check-api-key", () => {

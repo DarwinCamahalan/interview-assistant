@@ -3,21 +3,31 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import Queue from "../_pages/Queue"
 import Solutions from "../_pages/Solutions"
+import Settings from "../_pages/Settings"
 import { useToast } from "../contexts/toast"
 
 interface SubscribedAppProps {
   credits: number
   currentLanguage: string
   setLanguage: (language: string) => void
+  currentView: "queue" | "solutions" | "debug" | "settings"
+  setCurrentView: (view: "queue" | "solutions" | "debug" | "settings") => void
+  currentTheme: string
+  onThemeChange: (theme: string) => void
 }
 
 const SubscribedApp: React.FC<SubscribedAppProps> = ({
   credits,
   currentLanguage,
-  setLanguage
+  setLanguage,
+  currentView,
+  setCurrentView,
+  currentTheme,
+  onThemeChange
 }) => {
   const queryClient = useQueryClient()
-  const [view, setView] = useState<"queue" | "solutions" | "debug">("queue")
+  const view = currentView
+  const setView = setCurrentView
   const containerRef = useRef<HTMLDivElement>(null)
   const { showToast } = useToast()
 
@@ -44,10 +54,9 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
     }
   }, [])
 
-  // Set fixed window dimensions - no dynamic resizing
+  // No longer need to manually set dimensions - window is resizable
   useEffect(() => {
-    // Set fixed dimensions immediately
-    window.electronAPI?.updateContentDimensions({ width: 900, height: 1200 })
+    // Window dimensions are now handled by Electron
   }, [view])
 
   // Listen for events that might switch views or show errors
@@ -99,22 +108,29 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
   }, [view])
 
   return (
-    <div ref={containerRef} className="min-h-full h-full bg-black/60">
-      {view === "queue" ? (
-        <Queue
-          setView={setView}
-          credits={credits}
-          currentLanguage={currentLanguage}
-          setLanguage={setLanguage}
-        />
-      ) : view === "solutions" ? (
-        <Solutions
-          setView={setView}
-          credits={credits}
-          currentLanguage={currentLanguage}
-          setLanguage={setLanguage}
-        />
-      ) : null}
+    <div ref={containerRef} className="h-full w-full overflow-hidden">
+      <div className="h-full w-full overflow-y-auto overflow-x-hidden">
+        {view === "queue" ? (
+          <Queue
+            setView={setView}
+            credits={credits}
+            currentLanguage={currentLanguage}
+            setLanguage={setLanguage}
+          />
+        ) : view === "solutions" ? (
+          <Solutions
+            setView={setView}
+            credits={credits}
+            currentLanguage={currentLanguage}
+            setLanguage={setLanguage}
+          />
+        ) : view === "settings" ? (
+          <Settings
+            currentTheme={currentTheme}
+            onThemeChange={onThemeChange}
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

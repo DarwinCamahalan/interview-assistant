@@ -5,6 +5,14 @@ import { app } from "electron"
 import { EventEmitter } from "events"
 import { OpenAI } from "openai"
 
+interface ShortcutConfig {
+  takeScreenshot: string;
+  processQueue: string;
+  toggleWindow: string;
+  resetView: string;
+  deleteLastScreenshot: string;
+}
+
 interface Config {
   apiKey: string;
   apiProvider: "openai" | "gemini" | "anthropic";  // Added provider selection
@@ -13,6 +21,8 @@ interface Config {
   debuggingModel: string;
   language: string;
   opacity: number;
+  theme?: string;
+  shortcuts?: ShortcutConfig;
 }
 
 export class ConfigHelper extends EventEmitter {
@@ -24,7 +34,15 @@ export class ConfigHelper extends EventEmitter {
     solutionModel: "gpt-4o",
     debuggingModel: "gpt-4o",
     language: "javascript",
-    opacity: 1.0
+    opacity: 0.95,
+    theme: "dark",
+    shortcuts: {
+      takeScreenshot: 'CommandOrControl+H',
+      processQueue: 'CommandOrControl+Enter',
+      toggleWindow: 'CommandOrControl+B',
+      resetView: 'CommandOrControl+R',
+      deleteLastScreenshot: 'CommandOrControl+L',
+    }
   };
 
   constructor() {
@@ -199,11 +217,12 @@ export class ConfigHelper extends EventEmitter {
       const newConfig = { ...currentConfig, ...updates };
       this.saveConfig(newConfig);
       
-      // Only emit update event for changes other than opacity
-      // This prevents re-initializing the AI client when only opacity changes
+      // Only emit update event for changes other than opacity or theme
+      // This prevents re-initializing the AI client when only opacity or theme changes
       if (updates.apiKey !== undefined || updates.apiProvider !== undefined || 
           updates.extractionModel !== undefined || updates.solutionModel !== undefined || 
-          updates.debuggingModel !== undefined || updates.language !== undefined) {
+          updates.debuggingModel !== undefined || updates.language !== undefined ||
+          updates.shortcuts !== undefined) {
         this.emit('config-updated', newConfig);
       }
       

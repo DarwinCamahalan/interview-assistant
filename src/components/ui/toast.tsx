@@ -18,7 +18,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitive.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-1 p-2 sm:top-0 sm:right-0 sm:flex-col md:max-w-[320px]",
+      "fixed top-4 right-4 z-[100] flex max-h-screen w-full flex-col gap-3 md:max-w-[380px]",
       className
     )}
     {...props}
@@ -36,43 +36,87 @@ interface ToastProps
 
 const toastVariants: Record<
   ToastVariant,
-  { icon: React.ReactNode; bgColor: string }
+  { icon: React.ReactNode; bgColor: string; borderColor: string; iconBg: string }
 > = {
   neutral: {
-    icon: <Info className="h-3 w-3 text-amber-700" />,
-    bgColor: "bg-amber-100"
+    icon: <Info className="h-4 w-4 text-blue-400" />,
+    bgColor: "bg-slate-900/95",
+    borderColor: "border-blue-500/50",
+    iconBg: "bg-blue-500/20"
   },
   success: {
-    icon: <CheckCircle2 className="h-3 w-3 text-emerald-700" />,
-    bgColor: "bg-emerald-100"
+    icon: <CheckCircle2 className="h-4 w-4 text-green-400" />,
+    bgColor: "bg-slate-900/95",
+    borderColor: "border-green-500/50",
+    iconBg: "bg-green-500/20"
   },
   error: {
-    icon: <AlertCircle className="h-3 w-3 text-red-700" />,
-    bgColor: "bg-red-100"
+    icon: <AlertCircle className="h-4 w-4 text-red-400" />,
+    bgColor: "bg-slate-900/95",
+    borderColor: "border-red-500/50",
+    iconBg: "bg-red-500/20"
   }
 }
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitive.Root>,
   ToastProps
->(({ className, variant = "neutral", ...props }, ref) => (
-  <ToastPrimitive.Root
-    ref={ref}
-    duration={4000}
-    className={cn(
-      "group pointer-events-auto relative flex w-full items-center space-x-2 overflow-hidden rounded-md p-2",
-      toastVariants[variant].bgColor,
-      className
-    )}
-    {...props}
-  >
-    {toastVariants[variant].icon}
-    <div className="flex-1">{props.children}</div>
-    <ToastPrimitive.Close className="absolute right-1 top-1 rounded-md p-0.5 text-zinc-500 opacity-0 transition-opacity hover:text-zinc-700 group-hover:opacity-100">
-      <X className="h-2 w-2" />
-    </ToastPrimitive.Close>
-  </ToastPrimitive.Root>
-))
+>(({ className, variant = "neutral", ...props }, ref) => {
+  const [progress, setProgress] = React.useState(100);
+
+  React.useEffect(() => {
+    const duration = 5000; // 5 seconds
+    const interval = 50; // Update every 50ms
+    const decrement = (100 / duration) * interval;
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        const next = prev - decrement;
+        return next <= 0 ? 0 : next;
+      });
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <ToastPrimitive.Root
+      ref={ref}
+      duration={5000}
+      className={cn(
+        "group pointer-events-auto relative flex flex-col w-full overflow-hidden rounded-xl backdrop-blur-xl shadow-2xl",
+        toastVariants[variant].bgColor,
+        "animate-in slide-in-from-right-full fade-in duration-300",
+        className
+      )}
+      {...props}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div className={cn(
+          "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+          toastVariants[variant].iconBg
+        )}>
+          {toastVariants[variant].icon}
+        </div>
+        <div className="flex-1 pt-0.5">{props.children}</div>
+        <ToastPrimitive.Close className="flex-shrink-0 rounded-lg p-1.5 text-white/50 transition-all hover:text-white hover:bg-white/10">
+          <X className="h-4 w-4" />
+        </ToastPrimitive.Close>
+      </div>
+      {/* Progress Bar */}
+      <div className="h-1 w-full bg-white/10">
+        <div 
+          className={cn(
+            "h-full transition-all duration-50 ease-linear",
+            variant === "success" ? "bg-green-500" : 
+            variant === "error" ? "bg-red-500" : "bg-blue-500"
+          )}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </ToastPrimitive.Root>
+  );
+})
 Toast.displayName = ToastPrimitive.Root.displayName
 
 const ToastAction = React.forwardRef<
@@ -96,7 +140,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Title
     ref={ref}
-    className={cn("text-[0.7rem] font-medium text-zinc-900", className)}
+    className={cn("text-sm font-semibold text-white", className)}
     {...props}
   />
 ))
@@ -108,7 +152,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitive.Description
     ref={ref}
-    className={cn("text-[0.65rem] text-zinc-600", className)}
+    className={cn("text-xs text-white/70 mt-1", className)}
     {...props}
   />
 ))

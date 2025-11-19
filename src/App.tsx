@@ -15,6 +15,8 @@ import {
 import { ToastContext } from "./contexts/toast"
 import { WelcomeScreen } from "./components/WelcomeScreen"
 import { SettingsDialog } from "./components/Settings/SettingsDialog"
+import { Sidebar } from "./components/Navigation/Sidebar"
+import { TopBar } from "./components/Navigation/TopBar"
 
 // Create a React Query client
 const queryClient = new QueryClient({
@@ -47,6 +49,10 @@ function App() {
   // Note: Model selection is now handled via separate extraction/solution/debugging model settings
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [currentView, setCurrentView] = useState<"queue" | "solutions" | "debug" | "settings">("queue")
+  const [screenshotCount, setScreenshotCount] = useState(0)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [currentTheme, setCurrentTheme] = useState('dark')
 
   // Set unlimited credits
   const updateCredits = useCallback(() => {
@@ -165,6 +171,11 @@ function App() {
           updateLanguage("python")
         }
         
+        // Load theme preference
+        if (config && config.theme) {
+          setCurrentTheme(config.theme)
+        }
+        
         // Model settings are now managed through the settings dialog
         // and stored in config as extractionModel, solutionModel, and debuggingModel
         
@@ -179,6 +190,33 @@ function App() {
     
     initializeApp()
 
+    // Listen for screenshot count updates
+    const unsubscribeScreenshots = window.electronAPI.onScreenshotTaken(() => {
+      window.electronAPI.getScreenshots().then((screenshots: any[]) => {
+        setScreenshotCount(screenshots.length);
+      });
+    });
+
+    // Listen for processing state changes
+    const unsubscribeSolutionStart = window.electronAPI.onSolutionStart(() => {
+      setIsProcessing(true);
+      setCurrentView("solutions");
+    });
+
+    const unsubscribeSolutionSuccessHandler = window.electronAPI.onSolutionSuccess(() => {
+      setIsProcessing(false);
+    });
+
+    const unsubscribeSolutionError = window.electronAPI.onSolutionError(() => {
+      setIsProcessing(false);
+    });
+
+    const unsubscribeReset = window.electronAPI.onResetView(() => {
+      setCurrentView("queue");
+      setScreenshotCount(0);
+      setIsProcessing(false);
+    });
+
     // Event listeners for process events
     const onApiKeyInvalid = () => {
       showToast(
@@ -192,18 +230,14 @@ function App() {
     // Setup API key invalid listener
     window.electronAPI.onApiKeyInvalid(onApiKeyInvalid)
 
-    // Define a no-op handler for solution success
-    const unsubscribeSolutionSuccess = window.electronAPI.onSolutionSuccess(
-      () => {
-        console.log("Solution success - no credits deducted in this version")
-        // No credit deduction in this version
-      }
-    )
-
     // Cleanup function
     return () => {
+      unsubscribeScreenshots();
+      unsubscribeSolutionStart();
+      unsubscribeSolutionSuccessHandler();
+      unsubscribeSolutionError();
+      unsubscribeReset();
       window.electronAPI.removeListener("API_KEY_INVALID", onApiKeyInvalid)
-      unsubscribeSolutionSuccess()
       window.__IS_INITIALIZED__ = false
       setIsInitialized(false)
     }
@@ -236,28 +270,89 @@ function App() {
     }
   }, [showToast])
 
+  const handleThemeChange = async (theme: string) => {
+    setCurrentTheme(theme)
+    try {
+      await window.electronAPI.updateConfig({ theme })
+    } catch (error) {
+      console.error('Failed to save theme:', error)
+    }
+  }
+
+  const getThemeGradient = () => {
+    switch (currentTheme) {
+      case 'midnight':
+        return 'from-[#0d1117] via-[#161b22] to-[#0d1117]'
+      case 'forest':
+        return 'from-[#0a1f1a] via-[#0f2922] to-[#0a1f1a]'
+      case 'crimson':
+        return 'from-[#1a0f0f] via-[#2a1515] to-[#1a0f0f]'
+      case 'ocean':
+        return 'from-[#0a1929] via-[#0f2942] to-[#0a1929]'
+      default: // dark - VS Code default dark theme
+        return 'from-[#1e1e1e] via-[#1e1e1e] to-[#1e1e1e]'
+    }
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <ToastContext.Provider value={{ showToast }}>
-          <div className="relative bg-black/60">
+          <div className={`relative h-screen w-screen overflow-hidden bg-gradient-to-br ${getThemeGradient()}`}>
             {isInitialized ? (
               hasApiKey ? (
-                <SubscribedApp
-                  credits={credits}
-                  currentLanguage={currentLanguage}
-                  setLanguage={updateLanguage}
-                />
+                <div className="flex flex-col h-full">
+                  {/* Top Bar */}
+                  <TopBar 
+                    currentLanguage={currentLanguage}
+                    onLanguageChange={updateLanguage}
+                  />
+                  
+                  {/* Main Content Area */}
+                  <div className="flex flex-1 overflow-hidden">
+                    {/* Sidebar */}
+                    <div className="w-48 flex-shrink-0">
+                      <Sidebar
+                        currentView={currentView}
+                        onViewChange={setCurrentView}
+                        onOpenSettings={() => setCurrentView('settings')}
+                        screenshotCount={screenshotCount}
+                        isProcessing={isProcessing}
+                      />
+                    </div>
+                    
+                    {/* Main Content */}
+                    <div className="flex-1 overflow-hidden">
+                      <SubscribedApp
+                        credits={credits}
+                        currentLanguage={currentLanguage}
+                        setLanguage={updateLanguage}
+                        currentView={currentView}
+                        setCurrentView={setCurrentView}
+                        currentTheme={currentTheme}
+                        onThemeChange={handleThemeChange}
+                      />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <WelcomeScreen onOpenSettings={handleOpenSettings} />
               )
             ) : (
-              <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-6 h-6 border-2 border-white/20 border-t-white/80 rounded-full animate-spin"></div>
-                  <p className="text-white/60 text-sm">
-                    Initializing...
+              <div className="h-full w-full flex items-center justify-center glass-panel-dark">
+                <div className="flex flex-col items-center gap-4 fade-in">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-white/10 border-t-purple-500 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-transparent border-b-blue-500 rounded-full animate-spin absolute top-0 left-0" style={{ animationDirection: 'reverse' }}></div>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="text-white font-medium text-sm">
+                      Initializing AI Assistant
+                    </p>
+                    <p className="text-white/50 text-xs">
+                      Preparing your interview helper...
                   </p>
+                  </div>
                 </div>
               </div>
             )}

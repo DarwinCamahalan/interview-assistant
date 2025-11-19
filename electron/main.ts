@@ -103,6 +103,7 @@ export interface IIpcHandlerDeps {
   ) => Promise<{ success: boolean; error?: string }>
   getImagePreview: (filepath: string) => Promise<string>
   processingHelper: ProcessingHelper | null
+  shortcutsHelper: ShortcutsHelper | null
   PROCESSING_EVENTS: typeof state.PROCESSING_EVENTS
   takeScreenshot: () => Promise<string>
   getView: () => "queue" | "solutions" | "debug"
@@ -211,12 +212,13 @@ async function createWindow(): Promise<void> {
   state.screenHeight = workArea.height
   state.step = 60
   
-  const desiredWidth = 900 
-  const desiredHeight = 500
+  // Modern UI with comfortable default size - 800px wide
+  const desiredWidth = 800
+  const desiredHeight = 700
   const windowWidth = Math.min(desiredWidth, workArea.width - 100)
   const windowHeight = Math.min(desiredHeight, workArea.height - 100)
   
-  // Center the window on screen (both horizontally and vertically)
+  // Center the window on screen
   const centerX = Math.floor((workArea.width - windowWidth) / 2)
   const centerY = Math.floor((workArea.height - windowHeight) / 2)
   
@@ -228,8 +230,9 @@ async function createWindow(): Promise<void> {
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
     width: windowWidth,
     height: windowHeight,
-    minWidth: 900,
+    minWidth: 600,
     minHeight: 500,
+    resizable: true,
     x: centerX,
     y: centerY,
     alwaysOnTop: true,
@@ -558,6 +561,7 @@ async function initializeApp() {
       deleteScreenshot,
       getImagePreview,
       processingHelper: state.processingHelper,
+      shortcutsHelper: state.shortcutsHelper,
       PROCESSING_EVENTS: state.PROCESSING_EVENTS,
       takeScreenshot,
       getView,

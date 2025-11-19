@@ -198,6 +198,7 @@ const electronAPI = {
   },
   // External URL handler
   openLink: (url: string) => shell.openExternal(url),
+  reloadShortcuts: () => ipcRenderer.invoke("reload-shortcuts"),
   triggerScreenshot: () => ipcRenderer.invoke("trigger-screenshot"),
   triggerProcessScreenshots: () =>
     ipcRenderer.invoke("trigger-process-screenshots"),
