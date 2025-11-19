@@ -438,6 +438,82 @@ export class ProcessingHelper {
     }
   }
 
+  /**
+   * Extract JSON from AI response text, handling various formats
+   */
+  private extractJSONFromResponse(text: string): any {
+    if (!text) {
+      throw new Error("Empty response text");
+    }
+
+    // First, try to find JSON wrapped in code blocks (most common case)
+    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      try {
+        const parsed = JSON.parse(codeBlockMatch[1]);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      } catch (e) {
+        // Continue to other methods if this fails
+      }
+    }
+
+    // Try to find JSON object directly by finding balanced braces
+    // This is more reliable than a simple regex
+    let braceCount = 0;
+    let startIndex = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') {
+        if (startIndex === -1) startIndex = i;
+        braceCount++;
+      } else if (text[i] === '}') {
+        braceCount--;
+        if (braceCount === 0 && startIndex !== -1) {
+          const jsonCandidate = text.substring(startIndex, i + 1);
+          try {
+            const parsed = JSON.parse(jsonCandidate);
+            if (parsed && typeof parsed === 'object') {
+              return parsed;
+            }
+          } catch (e) {
+            // Continue searching
+          }
+          startIndex = -1;
+        }
+      }
+    }
+
+    // Try removing markdown code blocks and parsing the whole thing
+    const cleanedText = text.replace(/```json|```/g, '').trim();
+    // Remove any leading/trailing non-JSON text
+    const jsonStart = cleanedText.indexOf('{');
+    const jsonEnd = cleanedText.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      try {
+        const parsed = JSON.parse(cleanedText.substring(jsonStart, jsonEnd + 1));
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      } catch (e) {
+        // Continue to error
+      }
+    }
+
+    // Last attempt: try parsing the cleaned text directly
+    try {
+      const parsed = JSON.parse(cleanedText);
+      if (parsed && typeof parsed === 'object') {
+        return parsed;
+      }
+    } catch (e) {
+      // Final failure
+    }
+
+    // If all attempts fail, throw an error with context
+    throw new Error(`Failed to extract valid JSON from response. Response preview: ${text.substring(0, 500)}...`);
+  }
+
   private async processScreenshotsHelper(
     screenshots: Array<{ path: string; data: string }>,
     signal: AbortSignal
@@ -505,14 +581,14 @@ export class ProcessingHelper {
         // Parse the response
         try {
           const responseText = extractionResponse.choices[0].message.content;
-          // Handle when OpenAI might wrap the JSON in markdown code blocks
-          const jsonText = responseText.replace(/```json|```/g, '').trim();
-          problemInfo = JSON.parse(jsonText);
-        } catch (error) {
+          console.log("OpenAI raw response:", responseText?.substring(0, 500));
+          problemInfo = this.extractJSONFromResponse(responseText || "");
+        } catch (error: any) {
           console.error("Error parsing OpenAI response:", error);
+          console.error("Full response text:", extractionResponse.choices[0].message.content);
           return {
             success: false,
-            error: "Failed to parse problem information. Please try again or use clearer screenshots."
+            error: `Failed to parse problem information: ${error.message}. Please try again or use clearer screenshots.`
           };
         }
       } else if (config.apiProvider === "gemini")  {
@@ -563,15 +639,13 @@ export class ProcessingHelper {
           }
           
           const responseText = responseData.candidates[0].content.parts[0].text;
-          
-          // Handle when Gemini might wrap the JSON in markdown code blocks
-          const jsonText = responseText.replace(/```json|```/g, '').trim();
-          problemInfo = JSON.parse(jsonText);
-        } catch (error) {
+          console.log("Gemini raw response:", responseText?.substring(0, 500));
+          problemInfo = this.extractJSONFromResponse(responseText);
+        } catch (error: any) {
           console.error("Error using Gemini API:", error);
           return {
             success: false,
-            error: "Failed to process with Gemini API. Please check your API key or try again later."
+            error: `Failed to process with Gemini API: ${error.message}. Please check your API key or try again later.`
           };
         }
       } else if (config.apiProvider === "anthropic") {
@@ -611,10 +685,11 @@ export class ProcessingHelper {
           });
 
           const responseText = (response.content[0] as { type: 'text', text: string }).text;
-          const jsonText = responseText.replace(/```json|```/g, '').trim();
-          problemInfo = JSON.parse(jsonText);
+          console.log("Anthropic raw response:", responseText?.substring(0, 500));
+          problemInfo = this.extractJSONFromResponse(responseText);
         } catch (error: any) {
           console.error("Error using Anthropic API:", error);
+          console.error("Full response text:", error.responseText || "N/A");
 
           // Add specific handling for Claude's limitations
           if (error.status === 429) {
@@ -631,7 +706,7 @@ export class ProcessingHelper {
 
           return {
             success: false,
-            error: "Failed to process with Anthropic API. Please check your API key or try again later."
+            error: `Failed to process with Anthropic API: ${error.message}. Please check your API key or try again later.`
           };
         }
       }
