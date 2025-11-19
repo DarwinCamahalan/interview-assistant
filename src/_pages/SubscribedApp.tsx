@@ -44,46 +44,10 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
     }
   }, [])
 
-  // Dynamically update the window size
+  // Set fixed window dimensions - no dynamic resizing
   useEffect(() => {
-    if (!containerRef.current) return
-
-    const updateDimensions = () => {
-      if (!containerRef.current) return
-      const height = containerRef.current.scrollHeight || 500
-      const width = containerRef.current.scrollWidth || 900
-      window.electronAPI?.updateContentDimensions({ width, height })
-    }
-
-    // Force initial dimension update immediately
-    updateDimensions()
-    
-    // Set a fallback timer to ensure dimensions are set even if content isn't fully loaded
-    const fallbackTimer = setTimeout(() => {
-      window.electronAPI?.updateContentDimensions({ width: 900, height: 500 })
-    }, 500)
-
-    const resizeObserver = new ResizeObserver(updateDimensions)
-    resizeObserver.observe(containerRef.current)
-
-    // Also watch DOM changes
-    const mutationObserver = new MutationObserver(updateDimensions)
-    mutationObserver.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true
-    })
-
-    // Do another update after a delay to catch any late-loading content
-    const delayedUpdate = setTimeout(updateDimensions, 1000)
-
-    return () => {
-      resizeObserver.disconnect()
-      mutationObserver.disconnect()
-      clearTimeout(fallbackTimer)
-      clearTimeout(delayedUpdate)
-    }
+    // Set fixed dimensions immediately
+    window.electronAPI?.updateContentDimensions({ width: 900, height: 1200 })
   }, [view])
 
   // Listen for events that might switch views or show errors
@@ -135,7 +99,7 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
   }, [view])
 
   return (
-    <div ref={containerRef} className="min-h-full h-full">
+    <div ref={containerRef} className="min-h-full h-full bg-black/60">
       {view === "queue" ? (
         <Queue
           setView={setView}

@@ -44,14 +44,14 @@ const CodeSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative max-h-[500px] overflow-hidden">
+        <div className="w-full relative overflow-hidden">
           <button
             onClick={copyToClipboard}
             className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <div className="max-h-[500px] overflow-auto">
+          <div className="overflow-auto">
             <SyntaxHighlighter
               showLineNumbers
               language={currentLanguage == "golang" ? "go" : currentLanguage}
@@ -273,34 +273,15 @@ const Debug: React.FC<DebugProps> = ({
       })
     ]
 
-    // Set up resize observer
     const updateDimensions = () => {
-      if (contentRef.current) {
-        // Use clientHeight instead of scrollHeight to respect max-height constraints
-        // This prevents the window from growing when code blocks have scrollbars
-        let contentHeight = contentRef.current.clientHeight || contentRef.current.scrollHeight
-        const contentWidth = contentRef.current.scrollWidth
-        if (tooltipVisible) {
-          contentHeight += tooltipHeight
-        }
-        // Cap the height to prevent excessive window growth
-        const maxWindowHeight = 800
-        contentHeight = Math.min(contentHeight, maxWindowHeight)
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight
-        })
-      }
-    }
-
-    const resizeObserver = new ResizeObserver(updateDimensions)
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current)
+      window.electronAPI.updateContentDimensions({
+        width: 900,
+        height: 1200
+      })
     }
     updateDimensions()
 
     return () => {
-      resizeObserver.disconnect()
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
   }, [queryClient, setIsProcessing])
@@ -329,7 +310,7 @@ const Debug: React.FC<DebugProps> = ({
   }
 
   return (
-    <div ref={contentRef} className="relative">
+    <div ref={contentRef} className="relative overflow-y-auto h-full">
       <div className="space-y-3 px-4 py-3">
       {/* Conditionally render the screenshot queue */}
       <div className="bg-transparent w-fit">
@@ -358,7 +339,7 @@ const Debug: React.FC<DebugProps> = ({
       {/* Main Content */}
       <div className="w-full text-sm text-black bg-black/60 rounded-md">
         <div className="rounded-lg overflow-hidden">
-          <div className="px-4 py-3 space-y-4 overflow-auto">
+          <div className="px-4 py-3 space-y-4">
             {/* Thoughts Section */}
             <ContentSection
               title="What I Changed"
@@ -399,7 +380,7 @@ const Debug: React.FC<DebugProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="w-full bg-black/30 rounded-md p-4 text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto max-h-[1200px]">
+                <div className="w-full bg-black/30 rounded-md p-4 text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto">
                   {/* Process the debug analysis text by sections and lines */}
                   {(() => {
                     // First identify key sections based on common patterns in the debug output

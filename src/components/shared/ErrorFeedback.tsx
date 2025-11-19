@@ -39,7 +39,14 @@ export const ErrorFeedback: React.FC<ErrorFeedbackProps> = ({
       <form onSubmit={handleSubmit} className="space-y-2">
         <textarea
           value={errorText}
-          onChange={(e) => setErrorText(e.target.value)}
+          onChange={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setErrorText(e.target.value)
+          }}
+          onFocus={(e) => {
+            e.preventDefault()
+          }}
           placeholder={placeholder}
           disabled={isProcessing}
           className="w-full bg-black/40 border border-white/10 rounded-md px-3 py-2 text-[13px] text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-white/20 resize-none"

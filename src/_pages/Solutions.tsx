@@ -75,14 +75,14 @@ const SolutionSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative max-h-[500px] overflow-hidden">
+        <div className="w-full relative overflow-hidden">
           <button
             onClick={copyToClipboard}
             className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <div className="max-h-[500px] overflow-auto">
+          <div className="overflow-auto">
             <SyntaxHighlighter
               showLineNumbers
               language={currentLanguage == "golang" ? "go" : currentLanguage}
@@ -239,31 +239,13 @@ const Solutions: React.FC<SolutionsProps> = ({
   const { showToast } = useToast()
 
   useEffect(() => {
-    // Height update logic
     const updateDimensions = () => {
-      if (contentRef.current) {
-        // Use clientHeight instead of scrollHeight to respect max-height constraints
-        // This prevents the window from growing when code blocks have scrollbars
-        let contentHeight = contentRef.current.clientHeight || contentRef.current.scrollHeight
-        const contentWidth = contentRef.current.scrollWidth
-        if (isTooltipVisible) {
-          contentHeight += tooltipHeight
-        }
-        // Cap the height to prevent excessive window growth
-        const maxWindowHeight = 800
-        contentHeight = Math.min(contentHeight, maxWindowHeight)
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight
-        })
-      }
+      window.electronAPI.updateContentDimensions({
+        width: 900,
+        height: 1200
+      })
     }
 
-    // Initialize resize observer
-    const resizeObserver = new ResizeObserver(updateDimensions)
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current)
-    }
     updateDimensions()
 
     // Set up event listeners
@@ -426,10 +408,9 @@ const Solutions: React.FC<SolutionsProps> = ({
     ]
 
     return () => {
-      resizeObserver.disconnect()
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
-  }, [isTooltipVisible, tooltipHeight])
+  }, [])
 
   useEffect(() => {
     setProblemStatementData(
@@ -505,7 +486,7 @@ const Solutions: React.FC<SolutionsProps> = ({
           setLanguage={setLanguage}
         />
       ) : (
-        <div ref={contentRef} className="relative">
+        <div ref={contentRef} className="relative overflow-y-auto h-full">
           <div className="space-y-3 px-4 py-3">
           {/* Conditionally render the screenshot queue if solutionData is available */}
           {solutionData && (
@@ -535,7 +516,7 @@ const Solutions: React.FC<SolutionsProps> = ({
           {/* Main Content - Modified width constraints */}
           <div className="w-full text-sm text-black bg-black/60 rounded-md">
             <div className="rounded-lg overflow-hidden">
-              <div className="px-4 py-3 space-y-4 max-w-full overflow-auto">
+              <div className="px-4 py-3 space-y-4 max-w-full">
                 {!solutionData && (
                   <>
                     <ContentSection
