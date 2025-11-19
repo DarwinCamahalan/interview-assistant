@@ -210,15 +210,28 @@ async function createWindow(): Promise<void> {
   state.screenWidth = workArea.width
   state.screenHeight = workArea.height
   state.step = 60
-  state.currentY = 50
+  
+  const desiredWidth = 900 
+  const desiredHeight = 500
+  const windowWidth = Math.min(desiredWidth, workArea.width - 100)
+  const windowHeight = Math.min(desiredHeight, workArea.height - 100)
+  
+  // Center the window on screen (both horizontally and vertically)
+  const centerX = Math.floor((workArea.width - windowWidth) / 2)
+  const centerY = Math.floor((workArea.height - windowHeight) / 2)
+  
+  state.currentX = centerX
+  state.currentY = centerY
+  
+  console.log(`Window: ${windowWidth}x${windowHeight} at (${centerX}, ${centerY}) | Screen: ${workArea.width}x${workArea.height}`)
 
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
-    width: 800,
-    height: 600,
-    minWidth: 750,
-    minHeight: 550,
-    x: state.currentX,
-    y: 50,
+    width: windowWidth,
+    height: windowHeight,
+    minWidth: 900,
+    minHeight: 500,
+    x: centerX,
+    y: centerY,
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,
@@ -487,7 +500,7 @@ function setWindowDimensions(width: number, height: number): void {
     state.mainWindow.setBounds({
       x: Math.min(currentX, workArea.width - maxWidth),
       y: currentY,
-      width: Math.min(width + 32, maxWidth),
+      width: Math.min(width, maxWidth), 
       height: Math.ceil(height)
     })
   }

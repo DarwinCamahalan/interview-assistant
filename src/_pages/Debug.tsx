@@ -44,14 +44,14 @@ const CodeSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative max-h-[400px] overflow-hidden">
+        <div className="w-full relative max-h-[500px] overflow-hidden">
           <button
             onClick={copyToClipboard}
             className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <div className="max-h-[400px] overflow-auto">
+          <div className="max-h-[500px] overflow-auto">
             <SyntaxHighlighter
               showLineNumbers
               language={currentLanguage == "golang" ? "go" : currentLanguage}
@@ -174,7 +174,13 @@ const Debug: React.FC<DebugProps> = ({
     const cleanupFunctions = [
       window.electronAPI.onScreenshotTaken(() => refetch()),
       window.electronAPI.onResetView(() => refetch()),
-      window.electronAPI.onDebugSuccess((data) => {
+      window.electronAPI.onDebugSuccess((data: {
+        code: string
+        debug_analysis: string
+        thoughts: string[]
+        time_complexity: string
+        space_complexity: string
+      }) => {
         console.log("Debug success event received with data:", data);
         queryClient.setQueryData(["new_solution"], data);
         
@@ -193,7 +199,7 @@ const Debug: React.FC<DebugProps> = ({
           } else if (data.debug_analysis.includes('\n')) {
             // Try to find bullet points or numbered lists
             const lines = data.debug_analysis.split('\n');
-            const bulletPoints = lines.filter(line => 
+            const bulletPoints = lines.filter((line: string) => 
               line.trim().match(/^[\d*\-•]+\s/) || 
               line.trim().match(/^[A-Z][\d\.\)\:]/) ||
               line.includes(':') && line.length < 100
@@ -352,7 +358,7 @@ const Debug: React.FC<DebugProps> = ({
       {/* Main Content */}
       <div className="w-full text-sm text-black bg-black/60 rounded-md">
         <div className="rounded-lg overflow-hidden">
-          <div className="px-4 py-3 space-y-4 overflow-auto max-h-[600px]">
+          <div className="px-4 py-3 space-y-4 overflow-auto">
             {/* Thoughts Section */}
             <ContentSection
               title="What I Changed"
@@ -393,12 +399,16 @@ const Debug: React.FC<DebugProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="w-full bg-black/30 rounded-md p-4 text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto max-h-[600px]">
+                <div className="w-full bg-black/30 rounded-md p-4 text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto max-h-[1200px]">
                   {/* Process the debug analysis text by sections and lines */}
                   {(() => {
                     // First identify key sections based on common patterns in the debug output
-                    const sections = [];
-                    let currentSection = { title: '', content: [] };
+                    interface Section {
+                      title: string
+                      content: string[]
+                    }
+                    const sections: Section[] = [];
+                    let currentSection = { title: '', content: [] as string[] };
                     
                     // Split by possible section headers (### or ##)
                     const mainSections = debugAnalysis.split(/(?=^#{1,3}\s|^\*\*\*|^\s*[A-Z][\w\s]+\s*$)/m);
@@ -426,7 +436,7 @@ const Debug: React.FC<DebugProps> = ({
                     });
                     
                     // Render the processed sections
-                    return sections.map((section, sectionIndex) => (
+                    return sections.map((section: Section, sectionIndex: number) => (
                       <div key={sectionIndex} className="mb-6">
                         {section.title && (
                           <div className="font-bold text-white/90 text-[14px] mb-2 pb-1 border-b border-white/10">
@@ -434,14 +444,14 @@ const Debug: React.FC<DebugProps> = ({
                           </div>
                         )}
                         <div className="pl-1">
-                          {section.content.map((line, lineIndex) => {
+                          {section.content.map((line: string, lineIndex: number) => {
                             // Handle code blocks - detect full code blocks
                             if (line.trim().startsWith('```')) {
                               // If we find the start of a code block, collect all lines until the end
                               if (line.trim() === '```' || line.trim().startsWith('```')) {
                                 // Find end of this code block
                                 const codeBlockEndIndex = section.content.findIndex(
-                                  (l, i) => i > lineIndex && l.trim() === '```'
+                                  (l: string, i: number) => i > lineIndex && l.trim() === '```'
                                 );
                                 
                                 if (codeBlockEndIndex > lineIndex) {
@@ -483,7 +493,7 @@ const Debug: React.FC<DebugProps> = ({
                               const parts = line.split(/(`[^`]+`)/g);
                               return (
                                 <div key={lineIndex} className="my-1.5">
-                                  {parts.map((part, partIndex) => {
+                                  {parts.map((part: string, partIndex: number) => {
                                     if (part.startsWith('`') && part.endsWith('`')) {
                                       return <span key={partIndex} className="font-mono bg-black/30 px-1 py-0.5 rounded">{part.slice(1, -1)}</span>;
                                     }

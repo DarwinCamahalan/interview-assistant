@@ -19,11 +19,11 @@ export class ConfigHelper extends EventEmitter {
   private configPath: string;
   private defaultConfig: Config = {
     apiKey: "",
-    apiProvider: "gemini", // Default to Gemini
-    extractionModel: "gemini-2.0-flash", // Default to Flash for faster responses
-    solutionModel: "gemini-2.0-flash",
-    debuggingModel: "gemini-2.0-flash",
-    language: "python",
+    apiProvider: "openai",
+    extractionModel: "gpt-4o", 
+    solutionModel: "gpt-4o",
+    debuggingModel: "gpt-4o",
+    language: "javascript",
     opacity: 1.0
   };
 

@@ -50,8 +50,8 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
 
     const updateDimensions = () => {
       if (!containerRef.current) return
-      const height = containerRef.current.scrollHeight || 600
-      const width = containerRef.current.scrollWidth || 800
+      const height = containerRef.current.scrollHeight || 500
+      const width = containerRef.current.scrollWidth || 900
       window.electronAPI?.updateContentDimensions({ width, height })
     }
 
@@ -60,7 +60,7 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
     
     // Set a fallback timer to ensure dimensions are set even if content isn't fully loaded
     const fallbackTimer = setTimeout(() => {
-      window.electronAPI?.updateContentDimensions({ width: 800, height: 600 })
+      window.electronAPI?.updateContentDimensions({ width: 900, height: 500 })
     }, 500)
 
     const resizeObserver = new ResizeObserver(updateDimensions)
@@ -135,7 +135,7 @@ const SubscribedApp: React.FC<SubscribedAppProps> = ({
   }, [view])
 
   return (
-    <div ref={containerRef} className="min-h-0">
+    <div ref={containerRef} className="min-h-full h-full">
       {view === "queue" ? (
         <Queue
           setView={setView}

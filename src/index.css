@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom scrollbar styling - semi-transparent */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
 /* Custom animations for UI elements */
 @keyframes fadeIn {
   from { opacity: 0; transform: translate(-50%, -48%); }
@@ -67,4 +87,16 @@ option {
   filter: blur(48px);
   inset: -16px;
   opacity: 1;
+}
+
+/* Allow content to grow beyond viewport */
+html,
+body,
+#root {
+  width: 100%;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
 }

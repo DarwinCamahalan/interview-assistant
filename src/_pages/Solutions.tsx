@@ -33,7 +33,7 @@ export const ContentSection = ({
         </p>
       </div>
     ) : (
-      <div className="text-[13px] leading-[1.4] text-gray-100 max-w-[350px]">
+      <div className="text-[13px] leading-[1.4] text-gray-100 w-full">
         {content}
       </div>
     )}
@@ -75,14 +75,14 @@ const SolutionSection = ({
           </div>
         </div>
       ) : (
-        <div className="w-full relative max-h-[400px] overflow-hidden">
+        <div className="w-full relative max-h-[500px] overflow-hidden">
           <button
             onClick={copyToClipboard}
             className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
-          <div className="max-h-[400px] overflow-auto">
+          <div className="max-h-[500px] overflow-auto">
             <SyntaxHighlighter
               showLineNumbers
               language={currentLanguage == "golang" ? "go" : currentLanguage}
@@ -535,7 +535,7 @@ const Solutions: React.FC<SolutionsProps> = ({
           {/* Main Content - Modified width constraints */}
           <div className="w-full text-sm text-black bg-black/60 rounded-md">
             <div className="rounded-lg overflow-hidden">
-              <div className="px-4 py-3 space-y-4 max-w-full overflow-auto max-h-[600px]">
+              <div className="px-4 py-3 space-y-4 max-w-full overflow-auto">
                 {!solutionData && (
                   <>
                     <ContentSection
@@ -556,7 +556,7 @@ const Solutions: React.FC<SolutionsProps> = ({
                 {solutionData && (
                   <>
                     <ContentSection
-                      title={`My Thoughts (${COMMAND_KEY} + Arrow keys to scroll)`}
+                      title={`My Thoughts`}
                       content={
                         thoughtsData && (
                           <div className="space-y-3">
@@ -609,7 +609,7 @@ const Solutions: React.FC<SolutionsProps> = ({
       </div>
       )}
     </>
-  )
+  );
 }
 
 export default Solutions
