@@ -114,8 +114,8 @@ Note: The application is **NOT** invisible to:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/greeneu/interview-coder-withoupaywall-opensource.git
-cd interview-coder-withoupaywall-opensource
+git clone https://github.com/DarwinCamahalan/interview-assistant.git
+cd interview-assistant
 ```
 
 2. Install dependencies:
