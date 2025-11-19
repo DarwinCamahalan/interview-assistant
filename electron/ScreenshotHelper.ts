@@ -33,7 +33,7 @@ export class ScreenshotHelper {
     );
     this.tempDir = path.join(
       app.getPath("temp"),
-      "interview-coder-screenshots"
+      "darwin-camahalan-screenshots"
     );
 
     // Create directories if they don't exist

@@ -23,7 +23,7 @@
 > - Check your API key dashboard to verify the key is active and has sufficient credits
 > - Ensure you're using the correct API key format (OpenAI keys start with "sk-")
 >
-> The configuration file is stored at: `C:\Users\[USERNAME]\AppData\Roaming\interview-coder-v1\config.json` (on Windows) or `/Users/[USERNAME]/Library/Application Support/interview-coder-v1/config.json` (on macOS)
+> The configuration file is stored at: `C:\Users\[USERNAME]\AppData\Roaming\darwin-camahalan\config.json` (on Windows) or `/Users/[USERNAME]/Library/Application Support/darwin-camahalan/config.json` (on macOS)
 
 ## Free, Open-Source AI-Powered Interview Preparation Tool
 
@@ -100,7 +100,7 @@ Note: The application is **NOT** invisible to:
 - Screen Recording Permission for Terminal/IDE
   - On macOS:
     1. Go to System Preferences > Security & Privacy > Privacy > Screen Recording
-    2. Ensure that CodeInterviewAssist has screen recording permission enabled
+    2. Ensure that Darwin Camahalan has screen recording permission enabled
     3. Restart CodeInterviewAssist after enabling permissions
   - On Windows:
     - No additional permissions needed
@@ -192,7 +192,7 @@ The packaged applications will be available in the `release` directory.
 
 ## Comparison with Paid Interview Tools
 
-| Feature | Premium Tools (Paid) | CodeInterviewAssist (This Project) |
+| Feature | Premium Tools (Paid) | Darwin Camahalan (This Project) |
 |---------|------------------------|----------------------------------------|
 | Price | $60/month subscription | Free (only pay for your API usage) |
 | Solution Generation | ✅ | ✅ |

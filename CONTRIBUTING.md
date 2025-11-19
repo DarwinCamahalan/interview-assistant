@@ -1,6 +1,6 @@
-# Contributing to Interview Coder - Unlocked Edition
+# Contributing to Darwin Camahalan - Unlocked Edition
 
-Thank you for your interest in contributing to Interview Coder - Unlocked Edition! This free, open-source tool exists to empower the coding community with accessible interview preparation resources, and your efforts can make it even better. We're thrilled to have you join us in this collaborative journey!
+Thank you for your interest in contributing to Darwin Camahalan - Unlocked Edition! This free, open-source tool exists to empower the coding community with accessible interview preparation resources, and your efforts can make it even better. We're thrilled to have you join us in this collaborative journey!
 
 ## Our Community Values
 
@@ -14,15 +14,15 @@ We're building a supportive and inclusive environment based on the following pri
 
 ### 1. Fork the Repository
 
-- Visit the repository at [github.com/Ornithopter-pilot/interview-coder-withoupaywall-opensource](https://github.com/Ornithopter-pilot/interview-coder-withoupaywall-opensource).
+- Visit the repository at [github.com/DarwinCamahalan/interview-assistant](https://github.com/DarwinCamahalan/interview-assistant).
 - Click the "Fork" button to create your own copy.
 - Clone your fork locally:
   ```bash
-  git clone https://github.com/YOUR-USERNAME/interview-coder-withoupaywall-opensource.git
+  git clone https://github.com/YOUR-USERNAME/interview-assistant.git
   ```
 - Set up the upstream remote to sync with the original:
   ```bash
-  git remote add upstream https://github.com/Ornithopter-pilot/interview-coder-withoupaywall-opensource.git
+  git remote add upstream https://github.com/DarwinCamahalan/interview-assistant.git
   ```
 
 ### 2. Create a Branch
@@ -110,4 +110,4 @@ As the primary maintainer, I (Ornithopter-pilot) oversee merges and ensure stabi
 
 ## Thank You!
 
-Your contributions make Interview Coder - Unlocked Edition a powerful, community-owned tool. Whether it's adding language support, enhancing UI, or fixing bugs, every effort counts. Let's build something amazing together!
+Your contributions make Darwin Camahalan - Unlocked Edition a powerful, community-owned tool. Whether it's adding language support, enhancing UI, or fixing bugs, every effort counts. Let's build something amazing together!

@@ -1,5 +1,5 @@
 {
-  "name": "interview-coder-v1",
+  "name": "darwin-camahalan",
   "version": "1.0.19",
   "main": "./dist-electron/main.js",
   "scripts": {
@@ -15,8 +15,8 @@
     "package-win": "npm run build && electron-builder build --win"
   },
   "build": {
-    "appId": "com.chunginlee.interviewcoder",
-    "productName": "Interview Coder",
+    "appId": "com.darwincamahalan.app",
+    "productName": "Darwin Camahalan",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -48,7 +48,7 @@
           ]
         }
       ],
-      "artifactName": "Interview-Coder-${arch}.${ext}",
+      "artifactName": "Darwin-Camahalan-${arch}.${ext}",
       "icon": "assets/icons/mac/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -57,9 +57,9 @@
       "identity": "Developer ID Application",
       "notarize": true,
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "darwin-camahalan-protocol",
         "schemes": [
-          "interview-coder"
+          "darwin-camahalan"
         ]
       }
     },
@@ -70,9 +70,9 @@
       "icon": "assets/icons/win/icon.ico",
       "artifactName": "${productName}-Windows-${version}.${ext}",
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "darwin-camahalan-protocol",
         "schemes": [
-          "interview-coder"
+          "darwin-camahalan"
         ]
       }
     },
@@ -83,17 +83,17 @@
       "icon": "assets/icons/png/icon-256x256.png",
       "artifactName": "${productName}-Linux-${version}.${ext}",
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "darwin-camahalan-protocol",
         "schemes": [
-          "interview-coder"
+          "darwin-camahalan"
         ]
       }
     },
     "publish": [
       {
         "provider": "github",
-        "owner": "ibttf",
-        "repo": "interview-coder",
+        "owner": "DarwinCamahalan",
+        "repo": "interview-assistant",
         "private": false,
         "releaseType": "release"
       }
@@ -118,7 +118,7 @@
     "technical interview",
     "tool"
   ],
-  "author": "Interview Coder Contributors",
+  "author": "Darwin Camahalan",
   "license": "AGPL-3.0-or-later",
   "description": "An invisible desktop application to help you pass your technical interviews.",
   "dependencies": {
