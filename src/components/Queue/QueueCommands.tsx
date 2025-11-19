@@ -119,7 +119,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
         <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
           {/* Screenshot */}
           <div
-            className="flex items-center gap-2 cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
             onClick={async () => {
               try {
                 const result = await window.electronAPI.triggerScreenshot()
@@ -159,8 +159,8 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
           {/* Solve Command */}
           {screenshotCount > 0 && (
             <div
-              className={`flex flex-col cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
-                credits <= 0 ? "opacity-50 cursor-not-allowed" : ""
+              className={`flex flex-col rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
+                credits <= 0 ? "opacity-50" : ""
               }`}
               onClick={async () => {
 
@@ -204,7 +204,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
             onMouseLeave={handleMouseLeave}
           >
             {/* Gear icon */}
-            <div className="w-4 h-4 flex items-center justify-center cursor-pointer text-white/70 hover:text-white/90 transition-colors">
+            <div className="w-4 h-4 flex items-center justify-center text-white/70 hover:text-white/90 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -235,7 +235,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                     <div className="space-y-3">
                       {/* Toggle Command */}
                       <div
-                        className="cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
+                        className="rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
                         onClick={async () => {
                           try {
                             const result =
@@ -279,7 +279,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
                       {/* Screenshot Command */}
                       <div
-                        className="cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
+                        className="rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
                         onClick={async () => {
                           try {
                             const result =
@@ -323,10 +323,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
 
                       {/* Solve Command */}
                       <div
-                        className={`cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
+                        className={`rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
                           screenshotCount > 0
                             ? ""
-                            : "opacity-50 cursor-not-allowed"
+                            : "opacity-50"
                         }`}
                         onClick={async () => {
                           if (screenshotCount === 0) return
@@ -378,10 +378,10 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                       
                       {/* Delete Last Screenshot Command */}
                       <div
-                        className={`cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
+                        className={`rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
                           screenshotCount > 0
                             ? ""
-                            : "opacity-50 cursor-not-allowed"
+                            : "opacity-50"
                         }`}
                         onClick={async () => {
                           if (screenshotCount === 0) return
@@ -433,7 +433,7 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                       {/* Simplified Language Selector */}
                       <div className="mb-3 px-2">
                         <div 
-                          className="flex items-center justify-between cursor-pointer hover:bg-white/10 rounded px-2 py-1 transition-colors"
+                          className="flex items-center justify-between hover:bg-white/10 rounded px-2 py-1 transition-colors"
                           onClick={() => extractLanguagesAndUpdate('next')}
                           tabIndex={0}
                           onKeyDown={(e) => {
