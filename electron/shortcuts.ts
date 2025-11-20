@@ -58,6 +58,8 @@ export class ShortcutsHelper {
       toggleWindow: 'CommandOrControl+B',
       resetView: 'CommandOrControl+R',
       deleteLastScreenshot: 'CommandOrControl+L',
+      decreaseOpacity: 'CommandOrControl+[',
+      increaseOpacity: 'CommandOrControl+]',
     }
 
     // Register take screenshot
@@ -168,6 +170,27 @@ export class ShortcutsHelper {
       console.log("Command/Ctrl + Up pressed. Moving window Up.")
       this.deps.moveWindowUp()
     })
+
+    // Register opacity adjustment shortcuts (with custom shortcuts support)
+    try {
+      globalShortcut.register(shortcuts.decreaseOpacity, () => {
+        console.log(`${shortcuts.decreaseOpacity} pressed. Decreasing opacity.`)
+        this.adjustOpacity(-0.1)
+      })
+      this.registeredShortcuts.push(shortcuts.decreaseOpacity)
+    } catch (error) {
+      console.error(`Failed to register decreaseOpacity shortcut:`, error)
+    }
+
+    try {
+      globalShortcut.register(shortcuts.increaseOpacity, () => {
+        console.log(`${shortcuts.increaseOpacity} pressed. Increasing opacity.`)
+        this.adjustOpacity(0.1)
+      })
+      this.registeredShortcuts.push(shortcuts.increaseOpacity)
+    } catch (error) {
+      console.error(`Failed to register increaseOpacity shortcut:`, error)
+    }
 
     // Register quit (always CommandOrControl+Q)
     try {

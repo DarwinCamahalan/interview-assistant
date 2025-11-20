@@ -13,6 +13,7 @@ export interface SolutionCommandsProps {
   credits: number
   currentLanguage: string
   setLanguage: (language: string) => void
+  isDebugMode?: boolean
 }
 
 const handleSignOut = async () => {
@@ -35,7 +36,8 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
   extraScreenshots = [],
   credits,
   currentLanguage,
-  setLanguage
+  setLanguage,
+  isDebugMode = false
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -123,7 +125,7 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                 </div>
               </div>
 
-              {extraScreenshots.length > 0 && (
+              {extraScreenshots.length > 0 && !isDebugMode && (
                 <div
                   className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
                   onClick={async () => {
@@ -164,36 +166,6 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
               )}
             </>
           )}
-
-          {/* Start Over - Always visible */}
-          <div
-            className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
-            onClick={async () => {
-              try {
-                const result = await window.electronAPI.triggerReset()
-                if (!result.success) {
-                  console.error("Failed to reset:", result.error)
-                  showToast("Error", "Failed to reset", "error")
-                }
-              } catch (error) {
-                console.error("Error resetting:", error)
-                showToast("Error", "Failed to reset", "error")
-              }
-            }}
-          >
-            <span className="text-[11px] leading-none">Start Over</span>
-            <div className="flex gap-1">
-              <button className="bg-white/10 rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                {COMMAND_KEY}
-              </button>
-              <button className="bg-white/10 rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
-                R
-              </button>
-            </div>
-          </div>
-
-          {/* Separator */}
-          <div className="mx-2 h-4 w-px bg-white/20" />
 
           {/* Settings with Tooltip */}
           <div

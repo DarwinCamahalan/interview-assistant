@@ -83,7 +83,7 @@ export function Header({ currentLanguage, setLanguage, onOpenSettings }: HeaderP
           </button>
           
           {dropdownOpen && (
-            <div className="absolute z-10 mt-1 w-full rounded-md bg-black border border-white/10 shadow-lg">
+            <div className="absolute mt-1 w-full rounded-md bg-black border border-white/10 shadow-lg" style={{ zIndex: 2147483647 }}>
               <div className="py-1">
                 {LANGUAGES.map((lang) => (
                   <button

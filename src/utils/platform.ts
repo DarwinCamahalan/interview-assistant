@@ -18,6 +18,11 @@ export const getOS = (): 'mac' | 'windows' | 'linux' => {
 export const COMMAND_KEY = isMac() ? '⌘' : 'Ctrl';
 
 export const formatShortcutForDisplay = (shortcut: string): string => {
+  // Safety check for undefined or non-string shortcuts
+  if (!shortcut || typeof shortcut !== 'string') {
+    return '';
+  }
+  
   const os = getOS();
   
   if (os === 'mac') {

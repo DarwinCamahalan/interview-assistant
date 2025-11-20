@@ -535,6 +535,23 @@ const Solutions: React.FC<SolutionsProps> = ({
             />
           </div>
 
+          {/* Debug Processing Indicator */}
+          {debugProcessing && (
+            <div className="glass-card rounded-xl p-6 text-center fade-in">
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 border-4 border-white/10 border-t-green-500 rounded-full animate-spin"></div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white text-sm font-medium">Debugging code...</p>
+                  <p className="text-white/50 text-xs">
+                    AI is analyzing your screenshots
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
           <div className="space-y-4">
             {!solutionData ? (
@@ -567,18 +584,29 @@ const Solutions: React.FC<SolutionsProps> = ({
                       content={
                         thoughtsData && (
                       <div className="space-y-2">
-                              {thoughtsData.map((thought, index) => (
-                                <div
-                                  key={index}
-                            className="flex items-start gap-3 p-3 glass-panel-dark rounded-lg slide-in-right"
-                            style={{ animationDelay: `${index * 0.1}s` }}
-                                >
-                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs font-semibold">
-                              {index + 1}
+                              {thoughtsData.map((thought, index) => {
+                                // Clean up the thought text by removing leading numbers, asterisks, hyphens, etc.
+                                let cleanedThought = thought
+                                  // Remove patterns like "1.) *", "2.) *", "1.*", "1)", "1.", etc.
+                                  .replace(/^\d+[\.\)]\s*[\*\-•]?\s*/g, '')
+                                  // Remove leading asterisks, hyphens, bullets
+                                  .replace(/^[\*\-•]\s+/g, '')
+                                  // Trim any remaining whitespace
+                                  .trim();
+                                
+                                return (
+                                  <div
+                                    key={index}
+                              className="flex items-start gap-3 p-3 glass-panel-dark rounded-lg slide-in-right"
+                              style={{ animationDelay: `${index * 0.1}s` }}
+                                  >
+                              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-xs font-semibold">
+                                {index + 1}
+                              </div>
+                              <div className="text-sm text-gray-100">{cleanedThought}</div>
                             </div>
-                            <div className="text-sm text-gray-100">{thought}</div>
-                          </div>
-                        ))}
+                          );
+                        })}
                           </div>
                         )
                       }
@@ -597,8 +625,10 @@ const Solutions: React.FC<SolutionsProps> = ({
                       spaceComplexity={spaceComplexityData}
                       isLoading={!timeComplexityData || !spaceComplexityData}
                     />
+                  </>
+                )}
 
-                    {/* Error Feedback Section */}
+                {/* Error Feedback Section - Always visible */}
                 <div className="glass-card rounded-xl p-4 fade-in">
                     <ErrorFeedback
                       onSubmit={async (errorFeedback) => {
@@ -608,10 +638,9 @@ const Solutions: React.FC<SolutionsProps> = ({
                         }
                       }}
                       isProcessing={regeneratingSolution}
+                      placeholder="Paste error message, incorrect output, or ask for improvements..."
                     />
                 </div>
-                  </>
-                )}
         </div>
       </div>
       )}

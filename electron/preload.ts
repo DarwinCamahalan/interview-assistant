@@ -254,6 +254,10 @@ const electronAPI = {
   },
   getPlatform: () => process.platform,
   
+  // Opacity control methods
+  increaseOpacity: () => ipcRenderer.invoke("increase-opacity"),
+  decreaseOpacity: () => ipcRenderer.invoke("decrease-opacity"),
+  
   // New methods for OpenAI API integration
   getConfig: () => ipcRenderer.invoke("get-config"),
   updateConfig: (config: { apiKey?: string; model?: string; language?: string; opacity?: number }) => 

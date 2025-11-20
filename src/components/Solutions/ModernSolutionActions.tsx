@@ -1,5 +1,5 @@
 import React from "react";
-import { Camera, RotateCcw, Home } from "lucide-react";
+import { Camera, RotateCcw, RotateCcw as ResetIcon } from "lucide-react";
 import { useToast } from "../../contexts/toast";
 
 interface ModernSolutionActionsProps {
@@ -97,7 +97,7 @@ export function ModernSolutionActions({
       >
         <div className="flex items-center justify-center">
           <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center group-hover:bg-red-500/30 transition-colors">
-            <Home className="w-4 h-4 text-red-400" />
+            <ResetIcon className="w-4 h-4 text-red-400" />
           </div>
         </div>
       </button>

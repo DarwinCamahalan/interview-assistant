@@ -11,6 +11,8 @@ interface ShortcutConfig {
   toggleWindow: string;
   resetView: string;
   deleteLastScreenshot: string;
+  decreaseOpacity: string;
+  increaseOpacity: string;
 }
 
 interface Config {
@@ -42,6 +44,8 @@ export class ConfigHelper extends EventEmitter {
       toggleWindow: 'CommandOrControl+B',
       resetView: 'CommandOrControl+R',
       deleteLastScreenshot: 'CommandOrControl+L',
+      decreaseOpacity: 'CommandOrControl+[',
+      increaseOpacity: 'CommandOrControl+]',
     }
   };
 
@@ -78,28 +82,34 @@ export class ConfigHelper extends EventEmitter {
    */
   private sanitizeModelSelection(model: string, provider: "openai" | "gemini" | "anthropic"): string {
     if (provider === "openai") {
-      // Only allow gpt-4o and gpt-4o-mini for OpenAI
-      const allowedModels = ['gpt-4o', 'gpt-4o-mini'];
+      // Allow GPT-4 family models for OpenAI
+      const allowedModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4'];
       if (!allowedModels.includes(model)) {
-        console.warn(`Invalid OpenAI model specified: ${model}. Using default model: gpt-4o`);
+        console.warn(`⚠️ Invalid OpenAI model specified: ${model}. Using default model: gpt-4o`);
+        console.warn(`⚠️ Allowed models are: ${allowedModels.join(', ')}`);
         return 'gpt-4o';
       }
+      console.log(`✅ Model validated: ${model} for ${provider}`);
       return model;
     } else if (provider === "gemini")  {
       // Only allow gemini-1.5-pro and gemini-2.0-flash for Gemini
       const allowedModels = ['gemini-1.5-pro', 'gemini-2.0-flash'];
       if (!allowedModels.includes(model)) {
-        console.warn(`Invalid Gemini model specified: ${model}. Using default model: gemini-2.0-flash`);
+        console.warn(`⚠️ Invalid Gemini model specified: ${model}. Using default model: gemini-2.0-flash`);
+        console.warn(`⚠️ Allowed models are: ${allowedModels.join(', ')}`);
         return 'gemini-2.0-flash'; // Changed default to flash
       }
+      console.log(`✅ Model validated: ${model} for ${provider}`);
       return model;
     }  else if (provider === "anthropic") {
       // Only allow Claude models
       const allowedModels = ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'claude-3-opus-20240229'];
       if (!allowedModels.includes(model)) {
-        console.warn(`Invalid Anthropic model specified: ${model}. Using default model: claude-3-7-sonnet-20250219`);
+        console.warn(`⚠️ Invalid Anthropic model specified: ${model}. Using default model: claude-3-7-sonnet-20250219`);
+        console.warn(`⚠️ Allowed models are: ${allowedModels.join(', ')}`);
         return 'claude-3-7-sonnet-20250219';
       }
+      console.log(`✅ Model validated: ${model} for ${provider}`);
       return model;
     }
     // Default fallback
@@ -148,15 +158,27 @@ export class ConfigHelper extends EventEmitter {
    */
   public saveConfig(config: Config): void {
     try {
+      console.log("💾 ConfigHelper - saveConfig called");
+      console.log("💾 ConfigHelper - Config path:", this.configPath);
+      console.log("💾 ConfigHelper - Config to save:", JSON.stringify(config, null, 2));
+      
       // Ensure the directory exists
       const configDir = path.dirname(this.configPath);
       if (!fs.existsSync(configDir)) {
+        console.log("📁 ConfigHelper - Creating config directory:", configDir);
         fs.mkdirSync(configDir, { recursive: true });
       }
+      
       // Write the config file
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+      console.log("✅ ConfigHelper - Config file written successfully");
+      
+      // Verify the write
+      const writtenContent = fs.readFileSync(this.configPath, 'utf8');
+      const parsedWritten = JSON.parse(writtenContent);
+      console.log("✅ ConfigHelper - Verified written config language:", parsedWritten.language);
     } catch (err) {
-      console.error("Error saving config:", err);
+      console.error("❌ ConfigHelper - Error saving config:", err);
     }
   }
 
@@ -165,7 +187,10 @@ export class ConfigHelper extends EventEmitter {
    */
   public updateConfig(updates: Partial<Config>): Config {
     try {
+      console.log("📝 ConfigHelper - updateConfig called with:", JSON.stringify(updates, null, 2));
       const currentConfig = this.loadConfig();
+      console.log("📝 ConfigHelper - Current config:", JSON.stringify(currentConfig, null, 2));
+      
       let provider = updates.apiProvider || currentConfig.apiProvider;
       
       // Auto-detect provider based on API key format if a new key is provided
@@ -215,7 +240,10 @@ export class ConfigHelper extends EventEmitter {
       }
       
       const newConfig = { ...currentConfig, ...updates };
+      console.log("📝 ConfigHelper - New merged config:", JSON.stringify(newConfig, null, 2));
+      
       this.saveConfig(newConfig);
+      console.log("✅ ConfigHelper - Config saved to disk at:", this.configPath);
       
       // Only emit update event for changes other than opacity or theme
       // This prevents re-initializing the AI client when only opacity or theme changes
@@ -223,12 +251,13 @@ export class ConfigHelper extends EventEmitter {
           updates.extractionModel !== undefined || updates.solutionModel !== undefined || 
           updates.debuggingModel !== undefined || updates.language !== undefined ||
           updates.shortcuts !== undefined) {
+        console.log("📢 ConfigHelper - Emitting config-updated event");
         this.emit('config-updated', newConfig);
       }
       
       return newConfig;
     } catch (error) {
-      console.error('Error updating config:', error);
+      console.error('❌ ConfigHelper - Error updating config:', error);
       return this.defaultConfig;
     }
   }

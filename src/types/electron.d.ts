@@ -43,6 +43,8 @@ export interface ElectronAPI {
   openExternal: (url: string) => void
   toggleMainWindow: () => Promise<{ success: boolean; error?: string }>
   triggerScreenshot: () => Promise<{ success: boolean; error?: string }>
+  increaseOpacity: () => Promise<{ success: boolean; opacity?: number; error?: string }>
+  decreaseOpacity: () => Promise<{ success: boolean; opacity?: number; error?: string }>
   triggerProcessScreenshots: () => Promise<{ success: boolean; error?: string }>
   triggerReset: () => Promise<{ success: boolean; error?: string }>
   triggerMoveLeft: () => Promise<{ success: boolean; error?: string }>

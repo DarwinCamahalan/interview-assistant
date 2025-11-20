@@ -351,6 +351,41 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
     }
   })
   
+  // Opacity adjustment handlers
+  ipcMain.handle("increase-opacity", () => {
+    try {
+      const mainWindow = deps.getMainWindow();
+      if (!mainWindow) {
+        return { success: false, error: "No main window" };
+      }
+      const currentOpacity = mainWindow.getOpacity();
+      const newOpacity = Math.min(1.0, currentOpacity + 0.1);
+      mainWindow.setOpacity(newOpacity);
+      console.log(`Opacity increased from ${currentOpacity} to ${newOpacity}`);
+      return { success: true, opacity: newOpacity };
+    } catch (error) {
+      console.error("Error increasing opacity:", error);
+      return { error: "Failed to increase opacity" };
+    }
+  })
+
+  ipcMain.handle("decrease-opacity", () => {
+    try {
+      const mainWindow = deps.getMainWindow();
+      if (!mainWindow) {
+        return { success: false, error: "No main window" };
+      }
+      const currentOpacity = mainWindow.getOpacity();
+      const newOpacity = Math.max(0.1, currentOpacity - 0.1);
+      mainWindow.setOpacity(newOpacity);
+      console.log(`Opacity decreased from ${currentOpacity} to ${newOpacity}`);
+      return { success: true, opacity: newOpacity };
+    } catch (error) {
+      console.error("Error decreasing opacity:", error);
+      return { error: "Failed to decrease opacity" };
+    }
+  })
+  
   // Delete last screenshot handler
   ipcMain.handle("delete-last-screenshot", async () => {
     try {

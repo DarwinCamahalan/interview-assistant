@@ -24,6 +24,8 @@ export function Sidebar({
     toggleWindow: 'CommandOrControl+B',
     resetView: 'CommandOrControl+R',
     deleteLastScreenshot: 'CommandOrControl+L',
+    decreaseOpacity: 'CommandOrControl+[',
+    increaseOpacity: 'CommandOrControl+]',
   });
 
   useEffect(() => {
@@ -167,6 +169,14 @@ export function Sidebar({
             <div className="flex justify-between items-center text-xs">
               <span className="text-white/50">Reset</span>
               <kbd className="px-2 py-1 bg-white/10 rounded text-white/70 font-mono">{formatShortcutForDisplay(shortcuts.resetView)}</kbd>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-white/50">Opacity -</span>
+              <kbd className="px-2 py-1 bg-white/10 rounded text-white/70 font-mono">{formatShortcutForDisplay(shortcuts.decreaseOpacity)}</kbd>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-white/50">Opacity +</span>
+              <kbd className="px-2 py-1 bg-white/10 rounded text-white/70 font-mono">{formatShortcutForDisplay(shortcuts.increaseOpacity)}</kbd>
             </div>
           </div>
         )}

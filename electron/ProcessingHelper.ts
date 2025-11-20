@@ -163,9 +163,14 @@ export class ProcessingHelper {
     try {
       // Get language from config
       const config = configHelper.loadConfig();
+      console.log("🔍 getLanguage() - Full config loaded:", JSON.stringify(config, null, 2));
+      
       if (config.language) {
+        console.log("✅ getLanguage() - Using language from config:", config.language);
         return config.language;
       }
+      
+      console.log("⚠️ getLanguage() - No language in config, trying window.__LANGUAGE__");
       
       // Fallback to window variable if config doesn't have language
       const mainWindow = this.deps.getMainWindow()
@@ -181,6 +186,7 @@ export class ProcessingHelper {
             language !== undefined &&
             language !== null
           ) {
+            console.log("✅ getLanguage() - Using language from window:", language);
             return language;
           }
         } catch (err) {
@@ -189,6 +195,7 @@ export class ProcessingHelper {
       }
       
       // Default fallback
+      console.log("⚠️ getLanguage() - Using default fallback: python");
       return "python";
     } catch (error) {
       console.error("Error getting language:", error)

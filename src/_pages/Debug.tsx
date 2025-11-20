@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
-import SolutionCommands from "../components/Solutions/SolutionCommands"
+import { ModernDebugActions } from "../components/Debug/ModernDebugActions"
 import { Screenshot } from "../types/screenshots"
 import { ComplexitySection, ContentSection } from "./Solutions"
 import { useToast } from "../contexts/toast"
@@ -21,17 +21,6 @@ const CodeSection = ({
   isLoading: boolean
   currentLanguage: string
 }) => {
-  const [copied, setCopied] = useState(false)
-
-  const copyToClipboard = () => {
-    if (typeof code === "string") {
-      navigator.clipboard.writeText(code).then(() => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      })
-    }
-  }
-
   return (
     <div className="space-y-2">
       <h2 className="text-[13px] font-medium text-white tracking-wide"></h2>
@@ -45,12 +34,6 @@ const CodeSection = ({
         </div>
       ) : (
         <div className="w-full relative overflow-hidden">
-          <button
-            onClick={copyToClipboard}
-            className="absolute top-2 right-2 z-10 text-xs text-white bg-white/10 hover:bg-white/20 rounded px-2 py-1 transition"
-          >
-            {copied ? "Copied!" : "Copy"}
-          </button>
           <div className="overflow-auto">
             <SyntaxHighlighter
               showLineNumbers
@@ -106,8 +89,6 @@ const Debug: React.FC<DebugProps> = ({
   currentLanguage,
   setLanguage
 }) => {
-  const [tooltipVisible, setTooltipVisible] = useState(false)
-  const [tooltipHeight, setTooltipHeight] = useState(0)
   const [regeneratingDebug, setRegeneratingDebug] = useState(false)
   const { showToast } = useToast()
 
@@ -238,7 +219,10 @@ const Debug: React.FC<DebugProps> = ({
         console.error("Processing error:", error)
       }),
       window.electronAPI.onRegenerateDebugStart(() => {
-        setRegeneratingDebug(true)
+        console.log("Regenerate debug started");
+        setRegeneratingDebug(true);
+        // Don't clear existing data - keep it visible while regenerating
+        // The data will be updated when the new results arrive
       }),
       window.electronAPI.onRegenerateDebugSuccess((data: {
         code: string
@@ -247,49 +231,43 @@ const Debug: React.FC<DebugProps> = ({
         time_complexity: string
         space_complexity: string
       }) => {
-        queryClient.setQueryData(["new_solution"], data)
+        console.log("Regenerate debug success:", data);
+        queryClient.setQueryData(["new_solution"], data);
+        
         if (data.debug_analysis) {
-          setDebugAnalysis(data.debug_analysis)
-          setNewCode(data.code || "// Debug mode - see analysis below")
+          setDebugAnalysis(data.debug_analysis);
+          setNewCode(data.code || "// Debug mode - see analysis below");
           if (data.debug_analysis.includes('\n\n')) {
-            const sections = data.debug_analysis.split('\n\n').filter(Boolean)
-            setThoughtsData(sections.slice(0, 3))
+            const sections = data.debug_analysis.split('\n\n').filter(Boolean);
+            setThoughtsData(sections.slice(0, 3));
           } else {
-            setThoughtsData(["Debug analysis based on error feedback"])
+            setThoughtsData(["Debug analysis based on error feedback"]);
           }
         } else {
-          setNewCode(data.code || "// No analysis available")
-          setThoughtsData(data.thoughts || ["Debug analysis based on error feedback"])
-          setDebugAnalysis(null)
+          setNewCode(data.code || "// No analysis available");
+          setThoughtsData(data.thoughts || ["Debug analysis based on error feedback"]);
+          setDebugAnalysis(null);
         }
-        setTimeComplexityData(data.time_complexity || "N/A - Debug mode")
-        setSpaceComplexityData(data.space_complexity || "N/A - Debug mode")
-        setRegeneratingDebug(false)
-        showToast("Success", "Debug analysis regenerated successfully", "success")
+        setTimeComplexityData(data.time_complexity || "N/A - Debug mode");
+        setSpaceComplexityData(data.space_complexity || "N/A - Debug mode");
+        setRegeneratingDebug(false);
+        showToast("Success", "Debug analysis regenerated successfully", "success");
       }),
       window.electronAPI.onRegenerateDebugError((error: string) => {
-        showToast("Error", error || "Failed to regenerate debug", "error")
-        setRegeneratingDebug(false)
+        console.error("Regenerate debug error:", error);
+        showToast("Error", error || "Failed to regenerate debug", "error");
+        setRegeneratingDebug(false);
+        // Data remains unchanged since we didn't clear it on start
       })
     ]
 
-    const updateDimensions = () => {
-      window.electronAPI.updateContentDimensions({
-        width: 900,
-        height: 1200
-      })
-    }
-    updateDimensions()
+    // Removed updateDimensions() call to allow window to remain resizable
+    // and prevent forced dimension changes when navigating to Debug page
 
     return () => {
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
   }, [queryClient, setIsProcessing])
-
-  const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
-    setTooltipVisible(visible)
-    setTooltipHeight(height)
-  }
 
   const handleDeleteExtraScreenshot = async (index: number) => {
     const screenshotToDelete = screenshots[index]
@@ -310,12 +288,27 @@ const Debug: React.FC<DebugProps> = ({
   }
 
   return (
-    <div ref={contentRef} className="relative overflow-y-auto h-full">
-      <div className="space-y-3 px-4 py-3">
-      {/* Conditionally render the screenshot queue */}
-      <div className="bg-transparent w-fit">
-        <div className="pb-3">
-          <div className="space-y-3 w-fit">
+    <div ref={contentRef} className="relative overflow-y-auto h-full p-4 space-y-4">
+      {/* Header Section */}
+      <div className="glass-card rounded-xl p-4 fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-white text-lg font-semibold gradient-text">Debug Analysis</h1>
+            <p className="text-white/50 text-xs mt-1">
+              {debugAnalysis ? 'Debug complete' : 'Processing your code...'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`status-dot ${isProcessing ? 'processing' : 'active'}`}></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Screenshot queue */}
+      {screenshots.length > 0 && (
+        <div className="glass-card rounded-xl p-4 fade-in">
+          <h2 className="text-white text-sm font-medium mb-3">Captured Screenshots</h2>
+          <div className="grid grid-cols-2 gap-3">
             <ScreenshotQueue
               screenshots={screenshots}
               onDeleteScreenshot={handleDeleteExtraScreenshot}
@@ -323,64 +316,119 @@ const Debug: React.FC<DebugProps> = ({
             />
           </div>
         </div>
+      )}
+
+      {/* Actions Section */}
+      <div className="fade-in">
+        <ModernDebugActions
+          screenshotCount={screenshots.length}
+          isProcessing={isProcessing}
+        />
       </div>
 
-      {/* Navbar of commands with the tooltip */}
-      <SolutionCommands
-        screenshots={screenshots}
-        onTooltipVisibilityChange={handleTooltipVisibilityChange}
-        isProcessing={isProcessing}
-        extraScreenshots={screenshots}
-        credits={window.__CREDITS__}
-        currentLanguage={currentLanguage}
-        setLanguage={setLanguage}
-      />
-
       {/* Main Content */}
-      <div className="w-full text-sm text-black bg-black/60 rounded-md">
-        <div className="rounded-lg overflow-hidden">
-          <div className="px-4 py-3 space-y-4">
+      <div className="space-y-4">
             {/* Thoughts Section */}
-            <ContentSection
-              title="What I Changed"
-              content={
-                thoughtsData && (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      {thoughtsData.map((thought, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-                          <div>{thought}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              }
-              isLoading={!thoughtsData}
-            />
-
-            {/* Code Section */}
-            <CodeSection
-              title="Original Code"
-              code={newCode}
-              isLoading={!newCode}
-              currentLanguage={currentLanguage}
-            />
-            
-            {/* Debug Analysis Section */}
-            <div className="space-y-2">
-              <h2 className="text-[13px] font-medium text-white tracking-wide">Analysis & Improvements</h2>
-              {!debugAnalysis ? (
-                <div className="space-y-1.5">
-                  <div className="mt-4 flex">
-                    <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-                      Loading debug analysis...
-                    </p>
-                  </div>
+            <div className="glass-card rounded-xl p-4 fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-5 bg-gradient-accent rounded-full"></div>
+                <h2 className="text-sm font-semibold text-white tracking-wide">What I Changed</h2>
+              </div>
+              {!thoughtsData ? (
+                <div className="flex items-center gap-3 p-4">
+                  <div className="shimmer w-full h-20 rounded-lg"></div>
                 </div>
               ) : (
-                <div className="w-full bg-black/30 rounded-md p-4 text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto">
+                <div className="space-y-2">
+                  {thoughtsData.map((thought, index) => {
+                    // Clean up the thought text by removing leading numbers, asterisks, hyphens, etc.
+                    let cleanedThought = thought
+                      .replace(/^\d+[\.\)]\s*[\*\-•]?\s*/g, '')
+                      .replace(/^[\*\-•]\s+/g, '')
+                      .trim();
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-3 glass-panel-dark rounded-lg slide-in-right"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold">
+                          {index + 1}
+                        </div>
+                        <div className="text-sm text-gray-100">{cleanedThought}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Code Section */}
+            <div className="glass-card rounded-xl overflow-hidden fade-in">
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-5 bg-gradient-accent-green rounded-full"></div>
+                  <h2 className="text-sm font-semibold text-white tracking-wide">Original Code</h2>
+                </div>
+                {newCode && (
+                  <button
+                    onClick={() => {
+                      if (typeof newCode === "string") {
+                        navigator.clipboard.writeText(newCode).then(() => {
+                          const button = document.activeElement as HTMLButtonElement;
+                          const originalText = button.innerHTML;
+                          button.innerHTML = `
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Copied!</span>
+                          `;
+                          setTimeout(() => {
+                            button.innerHTML = originalText;
+                          }, 2000);
+                        });
+                      }
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 modern-button"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </button>
+                )}
+              </div>
+              {!newCode ? (
+                <div className="p-4">
+                  <div className="shimmer w-full h-64 rounded-lg"></div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="overflow-auto max-h-96">
+                    <CodeSection
+                      title=""
+                      code={newCode}
+                      isLoading={false}
+                      currentLanguage={currentLanguage}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Debug Analysis Section */}
+            <div className="glass-card rounded-xl p-4 fade-in">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-1 h-5 bg-gradient-accent rounded-full"></div>
+                <h2 className="text-sm font-semibold text-white tracking-wide">Analysis & Improvements</h2>
+              </div>
+              {!debugAnalysis ? (
+                <div className="flex items-center gap-3 p-4">
+                  <div className="shimmer w-full h-32 rounded-lg"></div>
+                </div>
+              ) : (
+                <div className="text-[13px] leading-[1.4] text-gray-100 whitespace-pre-wrap overflow-auto">
                   {/* Process the debug analysis text by sections and lines */}
                   {(() => {
                     // First identify key sections based on common patterns in the debug output
@@ -512,20 +560,19 @@ const Debug: React.FC<DebugProps> = ({
             />
 
             {/* Error Feedback Section */}
-            <ErrorFeedback
-              onSubmit={async (errorFeedback) => {
-                const result = await window.electronAPI.submitErrorFeedback(errorFeedback, true)
-                if (!result.success) {
-                  throw new Error(result.error || "Failed to submit error feedback")
-                }
-              }}
-              isProcessing={regeneratingDebug}
-              placeholder="Paste error message, incorrect output, or additional issues here..."
-            />
+            <div className="glass-card rounded-xl p-4 fade-in">
+              <ErrorFeedback
+                onSubmit={async (errorFeedback) => {
+                  const result = await window.electronAPI.submitErrorFeedback(errorFeedback, true)
+                  if (!result.success) {
+                    throw new Error(result.error || "Failed to submit error feedback")
+                  }
+                }}
+                isProcessing={regeneratingDebug}
+                placeholder="Paste error message, incorrect output, or additional issues here..."
+              />
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
     </div>
   )
 }

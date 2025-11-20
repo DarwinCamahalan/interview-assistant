@@ -61,9 +61,22 @@ function App() {
   }, [])
 
   // Helper function to safely update language
-  const updateLanguage = useCallback((newLanguage: string) => {
+  const updateLanguage = useCallback(async (newLanguage: string) => {
+    console.log(`🌐 App.tsx - updateLanguage called with: ${newLanguage}`);
+    
+    // Update React state
     setCurrentLanguage(newLanguage)
+    
+    // Update global window variable
     window.__LANGUAGE__ = newLanguage
+    
+    // Save to config file so it persists
+    try {
+      const result = await window.electronAPI.updateConfig({ language: newLanguage });
+      console.log(`✅ App.tsx - Language saved to config:`, result);
+    } catch (error) {
+      console.error(`❌ App.tsx - Failed to save language to config:`, error);
+    }
   }, [])
 
   // Helper function to mark initialization complete

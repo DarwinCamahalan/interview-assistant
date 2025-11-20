@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Minimize2, Maximize2, X } from 'lucide-react';
 
 interface TopBarProps {
@@ -19,8 +20,43 @@ const LANGUAGES = [
 
 export function TopBar({ currentLanguage, onLanguageChange }: TopBarProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentLang = LANGUAGES.find(l => l.value === currentLanguage) || LANGUAGES[0];
+
+  useEffect(() => {
+    if (isExpanded && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: 192 // w-48 = 12rem = 192px
+      });
+    }
+  }, [isExpanded]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded]);
 
   return (
     <div className="glass-panel-dark border-b border-white/10 px-4 py-2 flex items-center justify-between" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
@@ -29,6 +65,7 @@ export function TopBar({ currentLanguage, onLanguageChange }: TopBarProps) {
         <span className="text-white/50 text-xs font-medium">Language:</span>
         <div className="relative">
           <button
+            ref={buttonRef}
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card hover:bg-white/10 transition-all duration-200 modern-button"
           >
@@ -47,8 +84,17 @@ export function TopBar({ currentLanguage, onLanguageChange }: TopBarProps) {
             </svg>
           </button>
 
-          {isExpanded && (
-            <div className="absolute top-full mt-2 left-0 w-48 glass-panel-dark border border-white/10 rounded-lg overflow-hidden shadow-2xl fade-in" style={{ zIndex: 9999 }}>
+          {isExpanded && createPortal(
+            <div 
+              ref={dropdownRef}
+              className="fixed glass-panel-dark border border-white/10 rounded-lg overflow-hidden shadow-2xl fade-in"
+              style={{ 
+                top: `${position.top}px`,
+                left: `${position.left}px`,
+                width: `${position.width}px`,
+                zIndex: 2147483647 
+              }}
+            >
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.value}
@@ -77,7 +123,8 @@ export function TopBar({ currentLanguage, onLanguageChange }: TopBarProps) {
                   )}
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>

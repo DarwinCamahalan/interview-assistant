@@ -14,6 +14,8 @@ interface ShortcutConfig {
   toggleWindow: string;
   resetView: string;
   deleteLastScreenshot: string;
+  decreaseOpacity: string;
+  increaseOpacity: string;
 }
 
 const THEMES = [
@@ -65,6 +67,8 @@ const DEFAULT_SHORTCUTS: ShortcutConfig = {
   toggleWindow: 'CommandOrControl+B',
   resetView: 'CommandOrControl+R',
   deleteLastScreenshot: 'CommandOrControl+L',
+  decreaseOpacity: 'CommandOrControl+[',
+  increaseOpacity: 'CommandOrControl+]',
 };
 
 export default function Settings({ currentTheme, onThemeChange }: SettingsProps) {
@@ -222,6 +226,8 @@ export default function Settings({ currentTheme, onThemeChange }: SettingsProps)
             { key: 'toggleWindow' as keyof ShortcutConfig, label: 'Hide/Show Window' },
             { key: 'resetView' as keyof ShortcutConfig, label: 'Reset View' },
             { key: 'deleteLastScreenshot' as keyof ShortcutConfig, label: 'Delete Last Screenshot' },
+            { key: 'decreaseOpacity' as keyof ShortcutConfig, label: 'Decrease Opacity' },
+            { key: 'increaseOpacity' as keyof ShortcutConfig, label: 'Increase Opacity' },
           ].map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 transition-all">
               <div className="text-sm text-white/80">{label}</div>
@@ -267,8 +273,8 @@ export default function Settings({ currentTheme, onThemeChange }: SettingsProps)
               onChange={(e) => setExtractionModel(e.target.value)}
               className="w-full mt-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
             >
-              <option value="gpt-4o-mini">GPT-4O Mini (Fast & Cheap)</option>
-              <option value="gpt-4o">GPT-4O (Balanced)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cheap)</option>
+              <option value="gpt-4o">GPT-4o (Balanced)</option>
               <option value="gpt-4-turbo">GPT-4 Turbo (Powerful)</option>
             </select>
           </div>
@@ -281,8 +287,8 @@ export default function Settings({ currentTheme, onThemeChange }: SettingsProps)
               onChange={(e) => setSolutionModel(e.target.value)}
               className="w-full mt-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
             >
-              <option value="gpt-4o-mini">GPT-4O Mini (Fast & Cheap)</option>
-              <option value="gpt-4o">GPT-4O (Balanced)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cheap)</option>
+              <option value="gpt-4o">GPT-4o (Balanced)</option>
               <option value="gpt-4-turbo">GPT-4 Turbo (Powerful)</option>
             </select>
           </div>
@@ -295,8 +301,8 @@ export default function Settings({ currentTheme, onThemeChange }: SettingsProps)
               onChange={(e) => setDebuggingModel(e.target.value)}
               className="w-full mt-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm"
             >
-              <option value="gpt-4o-mini">GPT-4O Mini (Fast & Cheap)</option>
-              <option value="gpt-4o">GPT-4O (Balanced)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cheap)</option>
+              <option value="gpt-4o">GPT-4o (Balanced)</option>
               <option value="gpt-4-turbo">GPT-4 Turbo (Powerful)</option>
             </select>
           </div>
